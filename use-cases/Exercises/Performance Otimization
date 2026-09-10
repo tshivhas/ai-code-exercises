@@ -1,0 +1,65 @@
+## Error/Performance Description:
+
+The database query is running slowly because it may be processing too many rows or performing expensive operations such as full table scans, joins, sorting, or filtering.
+
+## Root Cause:
+
+Possible causes include:
+
+* Missing or inefficient indexes
+* Full table scans on large tables
+* Expensive `JOIN` operations
+* Unnecessary `SELECT *`
+* Inefficient filtering
+* Unnecessary sorting or grouping
+
+The exact cause should be confirmed using `EXPLAIN` or `EXPLAIN ANALYZE`.
+
+## Solution:
+
+1. **Check the execution plan**
+
+```sql
+EXPLAIN ANALYZE
+SELECT ...;
+```
+
+2. **Add appropriate indexes** to columns commonly used in `WHERE` and `JOIN`.
+
+3. **Select only required columns** instead of:
+
+```sql
+SELECT *
+```
+
+4. **Optimize joins and filtering** to reduce the number of rows processed.
+
+5. **Remove unnecessary operations** such as redundant subqueries, sorting, or grouping.
+
+## Performance Measurement:
+
+Measure the query before and after optimization:
+
+| Metric         | Before | After |
+| -------------- | -----: | ----: |
+| Execution time |  X sec | X sec |
+| Rows examined  |      X |     X |
+| Index used     |     No |   Yes |
+
+Use the same data and parameters for a fair comparison.
+
+## Learning Points:
+
+The main concepts to learn are:
+
+* Database indexes
+* Query execution plans
+* Full table scans
+* `JOIN` performance
+* Query complexity
+* Filtering and selectivity
+* Performance benchmarking
+
+## Key Learning:
+
+**Measure first, optimize second.** Use `EXPLAIN ANALYZE` to identify the actual bottleneck, make one change at a time, and compare performance before and after the optimization.

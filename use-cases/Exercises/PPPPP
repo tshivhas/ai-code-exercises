@@ -1,0 +1,391 @@
+function calculateTaskScore(task) {
+  // Base priority weights
+  const priorityWeights = {
+    [TaskPriority.LOW]: 1,
+    [TaskPriority.MEDIUM]: 2,
+    [TaskPriority.HIGH]: 3,
+    [TaskPriority.URGENT]: 4
+  };
+
+  // Calculate base score from priority
+  let score = (priorityWeights[task.priority] || 0) * 10;
+
+  // Add due date factor (higher score for tasks due sooner)
+  if (task.dueDate) {
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    const daysUntilDue = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+
+    if (daysUntilDue < 0) {  // Overdue tasks
+      score += 30;
+    } else if (daysUntilDue === 0) {  // Due today
+      score += 20;
+    } else if (daysUntilDue <= 2) {  // Due in next 2 days
+      score += 15;
+    } else if (daysUntilDue <= 7) {  // Due in next week
+      score += 10;
+    }
+  }
+
+  // Reduce score for tasks that are completed or in review
+  if (task.status === TaskStatus.DONE) {
+    score -= 50;
+  } else if (task.status === TaskStatus.REVIEW) {
+    score -= 15;
+  }
+
+  // Boost score for tasks with certain tags
+  if (task.tags.some(tag => ["blocker", "critical", "urgent"].includes(tag))) {
+    score += 8;
+  }
+
+  // Boost score for recently updated tasks
+  const now = new Date();
+  const updatedAt = new Date(task.updatedAt);
+  const daysSinceUpdate = Math.floor((now - updatedAt) / (1000 * 60 * 60 * 24));
+  if (daysSinceUpdate < 1) {
+    score += 5;
+  }
+
+  return score;
+}
+
+function sortTasksByImportance(tasks) {
+  // Create a copy of the tasks array to avoid modifying the original
+  return [...tasks].sort((a, b) => {
+    return calculateTaskScore(b) - calculateTaskScore(a);
+  });
+}
+
+function getTopPriorityTasks(tasks, limit = 5) {
+  const sortedTasks = sortTasksByImportance(tasks);
+  return sortedTasks.slice(0, limit);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function parseTaskFromText(text) {
+  /**
+   * Parse free-form text to extract task properties.
+   *
+   * Examples of format it can parse:
+   * "Buy milk @shopping !2 #tomorrow"
+   * "Finish report for client XYZ !urgent #friday #work @project"
+   *
+   * Where:
+   * - Basic text is the task title
+   * - @tag adds a tag
+   * - !N sets priority (1=low, 2=medium, 3=high, 4=urgent)
+   * - !urgent/!high/!medium/!low sets priority by name
+   * - #date sets a due date
+   */
+
+  // Default task properties
+  let title = text.trim();
+  let priority = TaskPriority.MEDIUM;
+  let dueDate = null;
+  let tags = [];
+
+  // Extract priority markers (!N or !name)
+  const priorityMatches = title.match(/\s!([1-4]|urgent|high|medium|low)\b/i);
+  if (priorityMatches) {
+    const priorityText = priorityMatches[1].toLowerCase();
+    // Remove from title
+    title = title.replace(/\s!([1-4]|urgent|high|medium|low)\b/i, '');
+
+    // Convert to TaskPriority
+    if (priorityText === '1' || priorityText === 'low') {
+      priority = TaskPriority.LOW;
+    } else if (priorityText === '2' || priorityText === 'medium') {
+      priority = TaskPriority.MEDIUM;
+    } else if (priorityText === '3' || priorityText === 'high') {
+      priority = TaskPriority.HIGH;
+    } else if (priorityText === '4' || priorityText === 'urgent') {
+      priority = TaskPriority.URGENT;
+    }
+  }
+
+  // Extract tags (@tag)
+  const tagRegex = /\s@(\w+)/g;
+  let tagMatch;
+  while ((tagMatch = tagRegex.exec(text)) !== null) {
+    tags.push(tagMatch[1]);
+    // Remove from title (we'll handle this after all tags are collected)
+  }
+
+  // Remove all tags from the title
+  title = title.replace(/\s@\w+/g, '');
+
+  // Extract date markers (#date)
+  const dateRegex = /\s#(\w+)/g;
+  const dates = [];
+  let dateMatch;
+  while ((dateMatch = dateRegex.exec(text)) !== null) {
+    dates.push(dateMatch[1]);
+    // Remove from title (we'll handle this after all dates are collected)
+  }
+
+  // Remove all date markers from the title
+  title = title.replace(/\s#\w+/g, '');
+
+  // Try to parse date references
+  if (dates.length > 0) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (const dateStr of dates) {
+      const lowerDateStr = dateStr.toLowerCase();
+
+      if (lowerDateStr === 'today' || lowerDateStr === 'now') {
+        dueDate = today;
+        break;
+      } else if (lowerDateStr === 'tomorrow') {
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        dueDate = tomorrow;
+        break;
+      } else if (lowerDateStr === 'next_week' || lowerDateStr === 'nextweek') {
+        const nextWeek = new Date(today);
+        nextWeek.setDate(today.getDate() + 7);
+        dueDate = nextWeek;
+        break;
+      } else if (['monday', 'mon', 'tuesday', 'tue', 'wednesday', 'wed',
+                  'thursday', 'thu', 'friday', 'fri', 'saturday', 'sat',
+                  'sunday', 'sun'].includes(lowerDateStr)) {
+        const dayMap = {
+          'monday': 1, 'mon': 1,
+          'tuesday': 2, 'tue': 2,
+          'wednesday': 3, 'wed': 3,
+          'thursday': 4, 'thu': 4,
+          'friday': 5, 'fri': 5,
+          'saturday': 6, 'sat': 6,
+          'sunday': 0, 'sun': 0
+        };
+
+        dueDate = getNextWeekday(today, dayMap[lowerDateStr]);
+        break;
+      }
+
+      // Try to parse as YYYY-MM-DD
+      const dateComponents = lowerDateStr.split('-');
+      if (dateComponents.length === 3) {
+        const parsedDate = new Date(
+          parseInt(dateComponents[0]),
+          parseInt(dateComponents[1]) - 1,
+          parseInt(dateComponents[2])
+        );
+
+        if (!isNaN(parsedDate.getTime())) {
+          dueDate = parsedDate;
+          break;
+        }
+      }
+    }
+  }
+
+  // Trim excess whitespace from title
+  title = title.replace(/\s+/g, ' ').trim();
+
+  // Create a new task with the extracted properties
+  const task = new Task(title);
+  task.priority = priority;
+  task.dueDate = dueDate;
+  task.tags = tags;
+
+  return task;
+}
+
+function getNextWeekday(currentDate, targetDay) {
+  // Get the next occurrence of a specific weekday
+  const result = new Date(currentDate);
+  result.setDate(currentDate.getDate() + (targetDay + 7 - currentDate.getDay()) % 7);
+
+  // If we landed on today and it's the target day, move to next week
+  if (result.getTime() === currentDate.getTime()) {
+    result.setDate(result.getDate() + 7);
+  }
+
+  return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function mergeTaskLists(localTasks, remoteTasks) {
+  /**
+   * Merge two task lists with conflict resolution.
+   *
+   * Args:
+   *   localTasks: Object of tasks from local source {task_id: task}
+   *   remoteTasks: Object of tasks from remote source {task_id: task}
+   *
+   * Returns:
+   *   Object with:
+   *     - mergedTasks: Combined tasks
+   *     - toCreateRemote: Tasks to be created in remote
+   *     - toUpdateRemote: Tasks to be updated in remote
+   *     - toCreateLocal: Tasks to be created in local
+   *     - toUpdateLocal: Tasks to be updated in local
+   */
+  const mergedTasks = {};
+  const toCreateRemote = {};
+  const toUpdateRemote = {};
+  const toCreateLocal = {};
+  const toUpdateLocal = {};
+
+  // Step 1: Identify all unique task IDs across both sources
+  const allTaskIds = new Set([
+    ...Object.keys(localTasks),
+    ...Object.keys(remoteTasks)
+  ]);
+
+  for (const taskId of allTaskIds) {
+    const localTask = localTasks[taskId];
+    const remoteTask = remoteTasks[taskId];
+
+    // Case 1: Task exists only locally - add to remote
+    if (localTask && !remoteTask) {
+      mergedTasks[taskId] = localTask;
+      toCreateRemote[taskId] = localTask;
+    }
+    // Case 2: Task exists only in remote - add to local
+    else if (!localTask && remoteTask) {
+      mergedTasks[taskId] = remoteTask;
+      toCreateLocal[taskId] = remoteTask;
+    }
+    // Case 3: Task exists in both - resolve conflicts
+    else {
+      const [mergedTask, shouldUpdateLocal, shouldUpdateRemote] =
+        resolveTaskConflict(localTask, remoteTask);
+
+      mergedTasks[taskId] = mergedTask;
+
+      if (shouldUpdateLocal) {
+        toUpdateLocal[taskId] = mergedTask;
+      }
+
+      if (shouldUpdateRemote) {
+        toUpdateRemote[taskId] = mergedTask;
+      }
+    }
+  }
+
+  return {
+    mergedTasks,
+    toCreateRemote,
+    toUpdateRemote,
+    toCreateLocal,
+    toUpdateLocal
+  };
+}
+
+function resolveTaskConflict(localTask, remoteTask) {
+  /**
+   * Resolve conflicts between two versions of the same task.
+   *
+   * Returns:
+   *   [mergedTask, shouldUpdateLocal, shouldUpdateRemote]
+   */
+  // Make a copy of the local task to use as our base
+  const mergedTask = {...localTask};
+
+  // Track if we need to update either source
+  let shouldUpdateLocal = false;
+  let shouldUpdateRemote = false;
+
+  // Most recent update wins for most fields
+  const localDate = new Date(localTask.updatedAt);
+  const remoteDate = new Date(remoteTask.updatedAt);
+
+  if (remoteDate > localDate) {
+    // Remote task is newer, update local fields
+    mergedTask.title = remoteTask.title;
+    mergedTask.description = remoteTask.description;
+    mergedTask.priority = remoteTask.priority;
+    mergedTask.dueDate = remoteTask.dueDate;
+    shouldUpdateLocal = true;
+  } else {
+    // Local task is newer or same age, update remote fields
+    shouldUpdateRemote = true;
+  }
+
+  // Special handling for completed status - completed wins over not completed
+  if (remoteTask.status === TaskStatus.DONE && localTask.status !== TaskStatus.DONE) {
+    mergedTask.status = TaskStatus.DONE;
+    mergedTask.completedAt = remoteTask.completedAt;
+    shouldUpdateLocal = true;
+  } else if (localTask.status === TaskStatus.DONE && remoteTask.status !== TaskStatus.DONE) {
+    // Keep local status (already in mergedTask)
+    shouldUpdateRemote = true;
+  } else if (remoteTask.status !== localTask.status) {
+    // Different non-completed status - most recent wins
+    if (remoteDate > localDate) {
+      mergedTask.status = remoteTask.status;
+      shouldUpdateLocal = true;
+    } else {
+      // Keep local status (already in mergedTask)
+      shouldUpdateRemote = true;
+    }
+  }
+
+  // Merge tags from both sources (union)
+  const allTags = [...new Set([...localTask.tags, ...remoteTask.tags])];
+  mergedTask.tags = allTags;
+
+  // If tags changed in either source, update both
+  if (!arraysEqual(mergedTask.tags, localTask.tags)) {
+    shouldUpdateLocal = true;
+  }
+  if (!arraysEqual(mergedTask.tags, remoteTask.tags)) {
+    shouldUpdateRemote = true;
+  }
+
+  // Update the timestamp to latest
+  mergedTask.updatedAt = localDate > remoteDate ? localTask.updatedAt : remoteTask.updatedAt;
+
+  return [mergedTask, shouldUpdateLocal, shouldUpdateRemote];
+}
+
+// Helper function to compare arrays
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((val, i) => val === sortedB[i]);
+}

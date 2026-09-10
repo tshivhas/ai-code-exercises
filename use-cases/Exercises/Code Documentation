@@ -1,0 +1,306 @@
+/**Original code snippet: /** */
+
+function calculateTaskScore(task) {
+  // Base priority weights
+  const priorityWeights = {
+    [TaskPriority.LOW]: 1,
+    [TaskPriority.MEDIUM]: 2,
+    [TaskPriority.HIGH]: 3,
+    [TaskPriority.URGENT]: 4
+  };
+
+  // Calculate base score from priority
+  let score = (priorityWeights[task.priority] || 0) * 10;
+
+  // Add due date factor (higher score for tasks due sooner)
+  if (task.dueDate) {
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    const daysUntilDue = Math.ceil((dueDate - now) / (1000 * 60 * 60 * 24));
+
+    if (daysUntilDue < 0) {  // Overdue tasks
+      score += 30;
+    } else if (daysUntilDue === 0) {  // Due today
+      score += 20;
+    } else if (daysUntilDue <= 2) {  // Due in next 2 days
+      score += 15;
+    } else if (daysUntilDue <= 7) {  // Due in next week
+      score += 10;
+    }
+  }
+
+  // Reduce score for tasks that are completed or in review
+  if (task.status === TaskStatus.DONE) {
+    score -= 50;
+  } else if (task.status === TaskStatus.REVIEW) {
+    score -= 15;
+  }
+
+  // Boost score for tasks with certain tags
+  if (task.tags.some(tag => ["blocker", "critical", "urgent"].includes(tag))) {
+    score += 8;
+  }
+
+  // Boost score for recently updated tasks
+  const now = new Date();
+  const updatedAt = new Date(task.updatedAt);
+  const daysSinceUpdate = Math.floor((now - updatedAt) / (1000 * 60 * 60 * 24));
+  if (daysSinceUpdate < 1) {
+    score += 5;
+  }
+
+  return score;
+}
+
+function sortTasksByImportance(tasks) {
+  // Create a copy of the tasks array to avoid modifying the original
+  return [...tasks].sort((a, b) => {
+    return calculateTaskScore(b) - calculateTaskScore(a);
+  });
+}
+
+function getTopPriorityTasks(tasks, limit = 5) {
+  const sortedTasks = sortTasksByImportance(tasks);
+  return sortedTasks.slice(0, limit);
+}
+
+
+
+/** PROMPT 1 /** */
+
+
+
+/**
+
+* Calculates an importance score for a task based on its priority,
+* due date, status, tags, and recent update activity.
+*
+* The score is calculated by starting with a base score derived from
+* the task's priority and then applying additional increases or
+* decreases based on other task attributes.
+*
+* Higher scores indicate that a task should be considered more important.
+*
+* @param {Object} task - The task to calculate a score for.
+* @param {TaskPriority} task.priority - The priority level of the task.
+* Supported priorities are LOW, MEDIUM, HIGH, and URGENT.
+* @param {string|Date|null} task.dueDate - The task's due date.
+* Tasks that are overdue or due soon receive additional points.
+* @param {TaskStatus} task.status - The current status of the task.
+* Completed and review tasks receive score reductions.
+* @param {string[]} task.tags - Tags associated with the task.
+* Tasks tagged "blocker", "critical", or "urgent" receive a score boost.
+* @param {string|Date} task.updatedAt - The date and time when the task
+* was last updated. Tasks updated within the last 24 hours receive
+* an additional score boost.
+*
+* @returns {number} The calculated importance score. A higher score
+* indicates a higher level of importance.
+*
+* @example
+* const task = {
+* priority: TaskPriority.HIGH,
+* dueDate: "2026-09-07",
+* status: TaskStatus.IN_PROGRESS,
+* tags: ["critical"],
+* updatedAt: "2026-09-06T10:00:00"
+* };
+*
+* const score = calculateTaskScore(task);
+* console.log(score);
+*
+* @throws {TypeError} May throw an error if task is null/undefined
+* or if task.tags is not an array.
+*
+* @notes
+* * Unknown or missing priority values contribute 0 to the base score.
+* * Overdue tasks receive the largest due-date bonus of 30 points.
+* * Tasks due today receive 20 points.
+* * Tasks due within two days receive 15 points.
+* * Tasks due within seven days receive 10 points.
+* * Completed tasks receive a 50-point reduction.
+* * Tasks in review receive a 15-point reduction.
+* * Tasks with blocker, critical, or urgent tags receive 8 additional points.
+* * Tasks updated within the previous 24 hours receive 5 additional points.
+* * Date calculations depend on the current system date and time.
+    */
+    function calculateTaskScore(task) {
+    // implementation unchanged
+    }
+
+
+/** PROMPT 2 /** */
+
+/** ### 1. High-level purpose
+
+The code calculates a task's importance score using priority, due date, status, tags, and recent updates. It then sorts tasks by score and returns the highest-priority tasks.
+
+### 2. Step-by-step logic
+
+* Assigns a base score based on task priority.
+* Adds points when a task is overdue or due soon.
+* Reduces points for completed or review tasks.
+* Adds points for important tags such as `blocker`, `critical`, or `urgent`.
+* Adds a bonus for recently updated tasks.
+* Sorts tasks from highest to lowest score.
+* Returns the top tasks based on the specified limit.
+
+### 3. Assumptions and edge cases
+
+* `task.tags` is expected to be an array.
+* Dates are expected to be valid.
+* Missing or invalid priorities receive a score of `0`.
+* Date calculations may be affected by time zones.
+* Recently updated means within the last 24 hours.
+
+### 4. Suggested inline comments
+
+Add comments explaining the scoring rules, date calculations, and why completed/review tasks receive score reductions.
+
+### 5. Potential improvements
+
+* Handle missing or invalid data safely.
+* Use named constants instead of hard-coded score values.
+* Create the current date once.
+* Separate the scoring rules into smaller functions.
+* Add tests for date boundaries and missing values.
+/** */
+
+
+
+/** COMBINED /** */
+
+
+/** ## Task Prioritisation Functions
+
+### Overview
+
+These functions implement a task-prioritisation system. Each task is assigned an importance score based on its priority, due date, current status, tags, and recent update activity.
+
+Higher scores indicate that a task should generally appear higher in the task list.
+
+The functions work together as follows:
+
+1. `calculateTaskScore()` calculates an importance score for an individual task.
+2. `sortTasksByImportance()` sorts tasks from highest to lowest calculated score.
+3. `getTopPriorityTasks()` returns the highest-scoring tasks up to the requested limit.
+
+---
+
+### `calculateTaskScore(task)`
+
+Calculates an importance score for an individual task.
+
+The calculation starts with a base score determined by the task's priority and then applies adjustments based on its deadline, status, tags, and recent activity.
+
+#### Scoring rules
+
+| Factor        | Condition                       | Score adjustment |
+| ------------- | ------------------------------- | ---------------: |
+| Priority      | LOW                             |              +10 |
+| Priority      | MEDIUM                          |              +20 |
+| Priority      | HIGH                            |              +30 |
+| Priority      | URGENT                          |              +40 |
+| Due date      | Overdue                         |              +30 |
+| Due date      | Due today                       |              +20 |
+| Due date      | Within 2 days                   |              +15 |
+| Due date      | Within 7 days                   |              +10 |
+| Status        | DONE                            |              -50 |
+| Status        | REVIEW                          |              -15 |
+| Tags          | blocker/critical/urgent present |               +8 |
+| Recent update | Updated within 24 hours         |               +5 |
+
+The adjustments are cumulative. For example, a high-priority task that is overdue, has a `critical` tag, and was recently updated can receive bonuses from all of those conditions.
+
+#### Parameters
+
+* `task` (`Object`) — The task whose importance should be calculated.
+* `task.priority` (`TaskPriority`) — The task's priority level.
+* `task.dueDate` (`string|Date|null`) — The task's deadline.
+* `task.status` (`TaskStatus`) — The task's current status.
+* `task.tags` (`string[]`) — Tags associated with the task.
+* `task.updatedAt` (`string|Date`) — The date and time when the task was last updated.
+
+#### Returns
+
+`number` — The calculated importance score. A higher value indicates greater importance.
+
+#### Important assumptions and edge cases
+
+* The function assumes `task` exists and contains the expected properties.
+* Missing or invalid priorities receive a base score of `0`.
+* The function assumes `task.tags` is an array. A missing `tags` property can cause a `TypeError`.
+* The function assumes `dueDate` and `updatedAt` contain valid date values.
+* "Recently updated" means less than 24 hours ago, rather than necessarily being updated on the current calendar day.
+* Date calculations depend on the current system time and can be affected by time-zone differences.
+* A completed task can still receive an overdue or tag bonus before its status reduction is applied.
+* Multiple matching priority tags do not stack; the tag bonus is applied only once.
+
+---
+
+### `sortTasksByImportance(tasks)`
+
+Creates a copy of the supplied task array and sorts the copy according to the calculated importance score.
+
+The original array is not modified.
+
+```javascript
+return [...tasks].sort((a, b) => {
+  return calculateTaskScore(b) - calculateTaskScore(a);
+});
+```
+
+The subtraction is reversed (`b - a`) so that tasks with higher scores appear first.
+
+#### Parameters
+
+* `tasks` (`Array`) — The collection of tasks to sort.
+
+#### Returns
+
+`Array` — A new array containing the tasks ordered from highest to lowest importance.
+
+---
+
+### `getTopPriorityTasks(tasks, limit = 5)`
+
+Returns the highest-priority tasks from the supplied task list.
+
+The function first sorts the tasks using `sortTasksByImportance()` and then uses `slice()` to return only the requested number of tasks.
+
+By default, the function returns the top five tasks.
+
+#### Parameters
+
+* `tasks` (`Array`) — The collection of tasks to evaluate.
+* `limit` (`number`, optional) — The maximum number of tasks to return. Defaults to `5`.
+
+#### Returns
+
+`Array` — The highest-scoring tasks, limited to the requested number.
+
+---
+
+### Overall intent
+
+The overall purpose of this code is to provide an automated way of determining which tasks deserve attention first.
+
+Instead of relying only on the task's manually assigned priority, the system considers multiple factors:
+
+**Priority + deadline + status + important tags + recent activity → importance score**
+
+This allows the application to dynamically reprioritise tasks as their deadlines approach, their status changes, or they receive important tags or updates.
+
+### Potential improvements
+
+The existing functionality could be maintained while improving maintainability by:
+
+1. Creating the current `Date` value once rather than multiple times.
+2. Safely handling missing `tags` values.
+3. Validating date values before performing calculations.
+4. Replacing hard-coded scoring numbers with named constants.
+5. Extracting individual scoring rules into smaller functions.
+6. Adding unit tests for boundary conditions such as tasks due exactly today, exactly two days away, exactly seven days away, invalid dates, and recently completed tasks.
+
+These improvements would make the scoring rules easier to understand, test, and modify without changing the intended prioritisation behaviour.
+/** */

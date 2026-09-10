@@ -1,0 +1,213 @@
+Below is a shortened completion of **Prompt 1, Prompt 2, and Prompt 3**, specifically based on the `mergeSort()` bug you were given.
+
+## Prompt 1 — Collaborative Solution Verification
+
+### Solution being verified
+
+The main bug is in the first remaining-elements loop:
+
+```javascript
+while (i < left.length) {
+  result.push(left[i]);
+  j++; // Bug
+}
+```
+
+It should increment `i`:
+
+```javascript
+while (i < left.length) {
+  result.push(left[i]);
+  i++;
+}
+```
+
+### My understanding
+
+The `merge()` function combines two sorted arrays. Once one array is exhausted, the remaining elements from the other array must be added.
+
+The bug occurs because `j` is incremented instead of `i`, causing the loop to continue incorrectly.
+
+### Verification plan
+
+I would test:
+
+* `[5, 2, 8, 1]` → `[1, 2, 5, 8]`
+* `[1, 2, 3]` → `[1, 2, 3]`
+* `[5, 4, 3, 2, 1]` → `[1, 2, 3, 4, 5]`
+
+Edge cases:
+
+* Empty array `[]`
+* One element `[5]`
+* Duplicate values `[3, 3, 1]`
+* Already sorted array
+
+### Most important verification
+
+I would compare the result against JavaScript's built-in sorting:
+
+```javascript
+const expected = [...arr].sort((a, b) => a - b);
+```
+
+This helps confirm that the corrected merge sort produces the expected ordering.
+
+### Learning
+
+I learned that small counter errors in loops can cause major problems. Checking boundary conditions and testing cases where one array becomes empty is especially important for merge algorithms.
+
+---
+
+# Prompt 2 — Learning Through Alternative Approaches
+
+### Understanding of the current solution
+
+The solution keeps the existing **merge sort** algorithm and fixes the incorrect counter:
+
+```javascript
+i++;
+```
+
+This is a good approach because it requires only a small change to the existing code.
+
+### Alternative approaches
+
+**Approach 1 — Fix the existing merge sort**
+
+```javascript
+while (i < left.length) {
+  result.push(left[i]);
+  i++;
+}
+```
+
+* Good performance: `O(n log n)`
+* Easy to understand
+* Minimal change
+* Best when maintaining the existing code
+
+**Approach 2 — Use JavaScript's built-in sort**
+
+```javascript
+return arr.sort((a, b) => a - b);
+```
+
+* Very simple
+* Generally efficient
+* Less code to maintain
+* Best when custom sorting logic is not required
+
+**Approach 3 — Rewrite the merge function**
+
+The merge logic could be redesigned using different pointer or array techniques.
+
+* Can improve readability
+* Provides more control
+* Requires more testing
+* More likely to introduce new bugs
+
+### Comparison
+
+| Approach          | Performance | Readability | Best use                    |
+| ----------------- | ----------- | ----------- | --------------------------- |
+| Fix merge sort    | O(n log n)  | Good        | Existing algorithm          |
+| Built-in `sort()` | Efficient   | Excellent   | General application sorting |
+| Rewrite merge     | Depends     | Moderate    | Custom requirements         |
+
+### Learning
+
+The important principle is to consider both **correctness and trade-offs**. The simplest solution is often best when the existing algorithm already meets the requirements.
+
+---
+
+# Prompt 3 — Developing a Critical Eye
+
+### Initial assessment
+
+**Strengths:**
+
+* The fix is very small.
+* It preserves the existing merge-sort structure.
+* It addresses the incorrect loop counter.
+
+**Concern:**
+
+* We need to verify that the fix works when either the left or right array becomes empty.
+* We should test duplicates, empty arrays, and different input sizes.
+
+### Potential weaknesses
+
+The solution assumes:
+
+* `arr` is an array.
+* The array contains comparable values.
+* The function is being used for ascending numerical sorting.
+* Invalid inputs do not need special error handling.
+
+### Maintainability
+
+The corrected solution is easy for another developer to understand because it follows the standard merge-sort structure.
+
+However, comments explaining why the remaining-element loops increment `i` and `j` could make the code easier to maintain.
+
+### Final verified solution
+
+```javascript
+function mergeSort(arr) {
+  if (arr.length <= 1) return arr;
+
+  const mid = Math.floor(arr.length / 2);
+  const left = mergeSort(arr.slice(0, mid));
+  const right = mergeSort(arr.slice(mid));
+
+  return merge(left, right);
+}
+
+function merge(left, right) {
+  let result = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < left.length && j < right.length) {
+    if (left[i] < right[j]) {
+      result.push(left[i]);
+      i++;
+    } else {
+      result.push(right[j]);
+      j++;
+    }
+  }
+
+  while (i < left.length) {
+    result.push(left[i]);
+    i++;
+  }
+
+  while (j < right.length) {
+    result.push(right[j]);
+    j++;
+  }
+
+  return result;
+}
+```
+
+### Verification Results
+
+The corrected function should successfully handle:
+
+```text
+[]                 → []
+[5]                → [5]
+[5, 2, 8, 1]       → [1, 2, 5, 8]
+[5, 4, 3, 2, 1]    → [1, 2, 3, 4, 5]
+[3, 3, 1, 2]       → [1, 2, 3, 3]
+```
+
+
+Reflection
+
+Confidence: My confidence increased after testing cases where one side of the merge becomes empty.
+Most scrutiny: The loop counters and boundary conditions required the most attention.
+Most valuable technique: Testing edge cases was the most valuable because it exposed exactly where the original loop failed.

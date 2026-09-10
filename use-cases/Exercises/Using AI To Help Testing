@@ -1,0 +1,566 @@
+Part 1: 
+Understanding What to Test
+
+Exercise 1.1
+Questions
+Let’s start by understanding your current model of the behavior:
+
+1. How is a task’s base score determined from its priority?
+2. What score changes happen for overdue tasks, tasks due today, and tasks due within the next week?
+3. What happens when a task is marked `DONE` or `REVIEW`?
+4. Which tags increase a task’s score?
+5. What does `updatedAt` contribute to the score?
+6. How does `sortTasksByImportance` treat the original array?
+7. What does `getTopPriorityTasks` return when there are fewer tasks than the requested limit?
+
+Answer in your own words, including anything you’re uncertain about. Then we’ll identify behaviors you missed before moving on to edge cases.
+
+Answers 
+1. How is a task’s base score determined from its priority?
+   The base score is determined by the task’s priority. Low gets 10, Medium gets 20, High gets 30, and Urgent gets 40. So the higher the priority, the higher the score.
+
+2. What score changes happen for overdue tasks, tasks due today, and tasks due within the next week?
+   Overdue tasks get an extra 30 points, tasks due today get 20 points, and tasks due within the next 2 days get 15 points. Tasks due within 7 days get 10 points. This means tasks that are closer to their due date get a higher score.
+
+3. What happens when a task is marked `DONE` or `REVIEW`?
+   When a task is `DONE`, 50 points are taken away from its score. When it is in `REVIEW`, 15 points are taken away.
+
+4. Which tags increase a task’s score?
+   The tags `blocker`, `critical`, and `urgent` increase the score by 8 points.
+
+5. What does `updatedAt` contribute to the score?
+   If the task was updated less than one day ago, it gets an extra 5 points because it was recently updated.
+
+6. How does `sortTasksByImportance` treat the original array?
+   It creates a copy of the original array before sorting, so the original array is not changed.
+
+7. What does `getTopPriorityTasks` return when there are fewer tasks than the requested limit?
+   It returns all the tasks available. For example, if the limit is 5 but there are only 3 tasks, it will return those 3 tasks.
+
+
+Exercise 1.2 
+Questions 
+
+## 1. `calculateTaskScore()`
+
+1. What is the base score for `LOW` priority?
+2. What is the base score for `URGENT` priority?
+3. How many points does an overdue task receive?
+4. How many points does a task due today receive?
+5. What happens to the score when the task is `DONE`?
+6. Which three tags give the task an extra score?
+7. How many points does a recently updated task receive?
+8. What happens if the task has no `dueDate`?
+
+---
+
+## 2. `sortTasksByImportance()`
+
+1. Does it sort from highest or lowest score?
+2. What function determines each task's score?
+3. Does it modify the original `tasks` array?
+4. Why is `[...tasks]` used?
+5. What happens if the array is empty?
+6. What happens if two tasks have the same score?
+7. What happens if there is only one task?
+8. What does the function return?
+
+---
+
+## 3. `getTopPriorityTasks()`
+
+1. What is the default `limit`?
+2. Does it sort the tasks first?
+3. Does it return the highest or lowest scoring tasks?
+4. What happens if there are fewer tasks than the limit?
+5. What happens if `limit` is `0`?
+6. What happens if `limit` is larger than the number of tasks?
+7. Does it modify the original array?
+8. What does the function return?
+
+---
+
+## 4. `parseTaskFromText()`
+
+1. What priority is used if no priority is provided?
+2. What does `!1` represent?
+3. What does `!urgent` represent?
+4. What does `@shopping` become?
+5. What happens to `@tags` in the task title?
+6. What does `#tomorrow` do?
+7. What happens with an invalid date such as `#banana`?
+8. What happens to extra spaces in the title?
+
+---
+
+## 5. `getNextWeekday()`
+
+1. What is the purpose of this function?
+2. What does `targetDay` represent?
+3. What happens if the target day is today?
+4. Does it return today or the following week?
+5. What happens if the target day is tomorrow?
+6. What happens if the target day is several days away?
+7. Does it modify `currentDate`?
+8. What does the function return?
+
+---
+
+## 6. `mergeTaskLists()`
+
+1. What happens to a task that exists only locally?
+2. What happens to a task that exists only remotely?
+3. What happens when a task exists in both lists?
+4. What function resolves conflicts?
+5. What does `mergedTasks` contain?
+6. What does `toCreateRemote` contain?
+7. What does `toCreateLocal` contain?
+8. What happens if both task lists are empty?
+
+---
+
+## 7. `resolveTaskConflict()`
+
+1. Which version wins when the remote task is newer?
+2. Which version wins when the local task is newer?
+3. What happens when both have the same timestamp?
+4. Which status wins if one task is `DONE`?
+5. What happens when both statuses are different but neither is `DONE`?
+6. How are tags from both tasks handled?
+7. Are duplicate tags allowed?
+8. Which `updatedAt` value is kept?
+
+Start with **`calculateTaskScore()` — answer the 8 questions**, and I'll check your answers before we move to the next function.
+
+Answers 
+## 1. `calculateTaskScore()`
+
+1. LOW: 10 points.
+2. URGENT: 40 points.
+3. Overdue: +30 points.
+4. Due today: +20 points.
+5. DONE: -50 points.
+6. Tags: blocker, critical, urgent.
+7. Recently updated: +5 points.
+8. No dueDate: No due-date bonus.
+
+2. `sortTasksByImportance()`
+
+1. Sorts highest to lowest score.
+2. Uses calculateTaskScore().
+3. No, it doesn't modify the original array.
+4. [...tasks] creates a copy.
+5. Returns an empty array.
+6. They have the same importance score.
+7. Returns that one task.
+8. Returns the sorted array
+
+3. `getTopPriorityTasks()`
+
+1. Default limit is 5
+2. Yes, it sorts first.
+3. Returns the highest-scoring tasks.
+4. Returns all available tasks.
+5. Returns an empty array.
+6. Returns all available tasks.
+7. No, it doesn't modify the original array.
+8. Returns the top tasks up to the limit.
+
+4. `parseTaskFromText()`
+
+1. Default priority is MEDIUM.
+2. !1 means LOW.
+3. !urgent means URGENT.
+4. It becomes a task tag.
+5. Tags are removed from the title.
+6. Sets the due date to tomorrow.
+7. No due date is set.
+8. Extra spaces are removed.
+
+5. `getNextWeekday()`
+
+1. Finds the next occurrence of a weekday.
+2. targetDay is the weekday you want.
+3. It moves to the following week.
+4. It returns the following occurrence.
+5. Returns tomorrow.
+6. Moves forward to that weekday.
+7. No, it creates a copy.
+8. Returns a Date object.
+
+6. `mergeTaskLists()`
+
+1. Adds it to toCreateRemote.
+2. Adds it to toCreateLocal.
+3. Resolves the conflict.
+4. resolveTaskConflict().
+5. Contains all merged tasks.
+6. Tasks that need to be created remotely.
+7. Tasks that need to be created locally.
+8. Returns empty result objects.
+
+7. `resolveTaskConflict()`
+
+1. Remote version wins.
+2. Local version stays.
+3. Local version wins.
+4. DONE wins.
+5. The newer version wins.
+6. Tags are combined.
+7. No, duplicates are removed.
+8. The latest timestamp is kept.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Part 2 
+Exercise 2.1 
+
+Your test appears to verify this behavior:
+
+> When all other task properties are equivalent, an urgent task receives a higher importance score than a low-priority task.
+
+### Questions about your intent
+
+1. Do you want to verify only the ordering, or the exact priority values?
+2. Should urgent always score exactly 30 points higher than low when other factors are identical?
+3. Are `status: null` and `dueDate: null` valid task values in your application, or are they merely test setup values?
+
+### Behavior or implementation detail?
+
+This is a **behavior-focused test**. It checks the observable result of the function, not how the score is calculated internally. It does not depend on `priorityWeights`, the `10` multiplier, or the implementation’s local variables.
+
+Your use of `updatedAt` is sensible because both tasks receive the same recency behavior. However, the test still depends on the current clock. What could happen if the test runs across a timing boundary?
+
+### Making the purpose clearer
+
+Consider what the test name should communicate:
+
+- Are you comparing only low versus urgent?
+- Are you verifying that priority increases monotonically?
+- Are you verifying the complete priority scale?
+
+A clear purpose might be expressed as:
+
+> “priority is the deciding factor when all other score factors are equal”
+
+What setup could you share between both tasks so the test makes that isolation more obvious?
+
+### More precise assertions
+
+Your current assertion verifies ordering, which is appropriate if the requirement is only “urgent ranks higher.”
+
+But based on the function, with the other factors neutral, the expected priority contributions are:
+
+- Low: $10$
+- Urgent: $40$
+
+Do you want your assertion to verify the exact values, or would that make the test too coupled to the scoring policy?
+
+A useful distinction:
+
+- `toBeGreaterThan(...)` tests the business rule that urgent ranks higher.
+- `toBe(40)` tests the current scoring policy exactly.
+
+### Missing edge cases
+
+Which of these should the system support, and what should each expect?
+
+- Medium priority versus high priority
+- All four priorities in increasing order
+- Unknown priority
+- Missing `priority`
+- Empty-string priority
+- Two tasks with equal priority
+- A task whose priority is urgent but which is completed
+
+One particularly important question: should a completed urgent task still score higher than an active low-priority task, given that `DONE` subtracts 50 points?
+
+
+
+
+Exercise 2.2 
+
+A good test for this portion should:
+
+- Control the current time so the test is deterministic.
+- Keep priority, status, tags, and `updatedAt` identical.
+- Choose dates that clearly fall into distinct categories.
+- Assert the expected score difference, not only that one score is larger.
+
+Your pseudocode compares two tasks, but a future task might receive a bonus too. That could hide an incorrect overdue bonus.
+
+### One stronger example
+
+```javascript
+test('adds the overdue bonus to an otherwise identical task', () => {
+  // Freeze time so date calculations do not depend on when the test runs.
+  jest.useFakeTimers();
+  jest.setSystemTime(new Date('2026-09-08T12:00:00Z'));
+
+  // Old enough to avoid the recently-updated bonus.
+  const updatedAt = new Date('2026-09-01T12:00:00Z');
+
+  const overdueTask = {
+    priority: TaskPriority.MEDIUM,
+    dueDate: new Date('2026-09-07T12:00:00Z'),
+    status: null,
+    tags: [],
+    updatedAt
+  };
+
+  const taskWithNoDueDateBonus = {
+    priority: TaskPriority.MEDIUM,
+    dueDate: new Date('2026-09-20T12:00:00Z'),
+    status: null,
+    tags: [],
+    updatedAt
+  };
+
+  const overdueScore = calculateTaskScore(overdueTask);
+  const futureScore = calculateTaskScore(taskWithNoDueDateBonus);
+
+  // Both tasks have a base score of 20.
+  // The overdue task receives 30 additional points.
+  expect(overdueScore).toBe(50);
+  expect(futureScore).toBe(20);
+  expect(overdueScore - futureScore).toBe(30);
+
+  jest.useRealTimers();
+});
+```
+
+The exact values here are based on the current scoring policy: medium priority contributes $20$, and an overdue date contributes $30$.
+
+### Questions for you
+
+1. Why is a task due 12 days in the future used instead of one due tomorrow?
+2. What would be wrong with asserting only this?
+
+```javascript
+expect(overdueScore).toBeGreaterThan(futureScore);
+```
+
+3. Would you prefer your test to assert the exact score, the exact difference of 30, or only the ordering? What business rule does each choice protect?
+
+### Edge cases to identify
+
+What should happen for a task due:
+
+- Exactly now
+- Later today
+- Yesterday
+- Exactly 2 days from now
+- Exactly 7 days from now
+- More than 7 days from now
+- With `dueDate: null`
+- With an invalid due date
+
+Pay special attention to “exactly now.” The function uses `Math.ceil`, so the result depends on the precise time difference. Should a task due earlier today count as “due today,” or as overdue?
+
+Finally, can you describe the expected score bonus for each boundary category? That table will help you turn the behavior into a focused checklist without accidentally testing multiple rules at once.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Part 3 
+Exercise 3.1
+
+
+Before writing the first test, define the feature’s contract.
+
+How is assignment represented on a task? For example:
+
+- `task.assignedTo = currentUserId`
+- `task.assignee = { id: ... }`
+- `task.assignedToCurrentUser = true`
+
+And where does the “current user” come from?
+
+For the first test, what behavior would you choose?
+
+A strong starting point would be:
+
+> A task assigned to the current user receives exactly 12 more points than an otherwise identical task that is not assigned to that user.
+
+Why do you think this should be the first test? Consider whether it tests the feature’s smallest positive case and whether it isolates assignment from priority, due date, status, tags, and recency.
+
+Please propose:
+
+1. The task fields that represent assignment.
+2. The two tasks you would compare.
+3. The assertion you would write.
+4. Why your test should fail against the current implementation.
+
+Once you write that test, I’ll review its behavior coverage and ask you for the smallest production-code change that should make it pass.
+
+
+
+
+Exercise 3.2 
+
+The code shows the calculation, but the specific bug is still unspecified. Before writing the test, choose the behavior that is currently wrong.
+
+A likely candidate is a future `updatedAt` value. Since the code checks only:
+
+```javascript
+daysSinceUpdate < 1
+```
+
+a negative value also qualifies, so a task updated in the future receives the +5 “recently updated” bonus.
+
+### Your first TDD test
+
+What test would you write for that case?
+
+Please specify:
+
+1. The frozen current time.
+2. A task with an `updatedAt` in the future.
+3. The expected score.
+4. Why the current implementation should fail.
+
+Use neutral values for every other factor:
+
+- Medium priority: baseline score $20$
+- No due date
+- Non-completed status
+- Empty tags
+- A future `updatedAt`
+
+Should the expected score be $20$ or $25$? Your answer defines the intended behavior.
+
+### Checking whether the test reproduces the bug
+
+Your test demonstrates the bug if the current implementation returns the wrong result for a clear reason. For example, if you expect a future update not to receive the bonus but the function returns $25$, the failing test directly exposes the issue.
+
+Make sure the test controls the clock. Otherwise, the result may change while the test runs.
+
+### Minimal-fix question
+
+Once the test fails, inspect the condition:
+
+```javascript
+if (daysSinceUpdate < 1)
+```
+
+What additional constraint would ensure that the timestamp is both:
+
+- Recent enough to qualify, and
+- Not in the future?
+
+State that condition in plain language first, then identify the smallest code change that expresses it.
+
+### Regression tests
+
+After the fix, what should happen for:
+
+- An update a few minutes ago?
+- An update exactly 24 hours ago?
+- An update more than 24 hours ago?
+- An update one minute in the future?
+- A missing `updatedAt`?
+- An invalid timestamp?
+
+
+
+
+
+
+
+
+
+
+
+
+
+Part 4 
+
+
+First, define what “integration” means here. These functions are not connected to a database or API, so the most useful integration boundary is likely:
+
+`parseTaskFromText` → task objects → `sortTasksByImportance` or `getTopPriorityTasks`
+
+### Scenarios
+
+Which workflow scenarios should the test verify?
+
+1. Text containing priority, tags, and a due-date marker is parsed into a task.
+2. Parsed tasks are ranked by their calculated scores.
+3. `getTopPriorityTasks` returns only the requested number of tasks.
+4. The original task collection remains unchanged.
+5. Tasks with equal scores have a defined ordering, or ordering is intentionally unspecified.
+
+Would your integration test cover one complete workflow, or several tasks competing for the top position?
+
+### Designing test data
+
+Create task descriptions whose differences are intentional. For example, decide whether you want:
+
+- One low-priority task
+- One high-priority task
+- One urgent task
+- One overdue task
+- One completed task that should rank lower
+- One task with a priority tag such as `critical`
+
+What should each task’s final relative ranking be?
+
+Be careful: a task can receive points from several factors. If an urgent task also has an overdue date and a critical tag, you are testing the interaction of multiple scoring rules. Is that what you want, or would a simpler first integration test use mostly neutral tasks and vary only parsing-related fields?
+
+### Assertions
+
+What externally visible results should prove the workflow worked?
+
+Consider asserting:
+
+- Parsed title has markers removed.
+- Parsed priority is correct.
+- Parsed tags are correct.
+- Parsed due date is in the expected category.
+- The returned task IDs or titles appear in the expected order.
+- The result length respects `limit`.
+- The input array has the same order after the call.
+
+Would asserting exact numeric scores help verify the workflow, or would it make this test duplicate narrower unit tests for `calculateTaskScore`?
+
+### Structure and maintainability
+
+How would you organize the test into:
+
+- **Arrange:** input text and controlled dates
+- **Act:** parse tasks and rank them
+- **Assert:** properties and ordering
+
+Where would you put repeated neutral fields such as `status`, `tags`, and `updatedAt`? A small local task factory can make the intent clearer, but only if it does not hide the fields that matter to the scenario.
+
+Also, how will you control `new Date()` so parsing and scoring do not depend on the clock? Finally, what test name would describe the complete user-visible workflow rather than the individual helper functions?
+
+

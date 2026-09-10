@@ -1,0 +1,20 @@
+{
+  "name": "ai-code-exercises",
+  "version": "1.0.0",
+  "description": "Code Exercises for AI Course for Software Engineers.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wethinkcode/ai-code-exercises.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wethinkcode/ai-code-exercises/issues"
+  },
+  "homepage": "https://github.com/wethinkcode/ai-code-exercises#readme"
+}

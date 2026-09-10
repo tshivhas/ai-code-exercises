@@ -1,0 +1,243 @@
+Part 1 
+Undertsanding the specific feature 
+
+1.  files that might be related to to task creation ans status updates are cli.js creates the task. model.js for status update 
+2. CREATING A TASK
+cli.js
+  -> taskManager.createTask(...)
+  -> new Task(...)
+  -> storage.addTask(task)
+  -> storage.save()
+  -> tasks.json
+
+UPDATING A TASK 
+model.js 
+ update(updates) {
+  Object.keys(updates).forEach(key => {
+    if (this.hasOwnProperty(key)) {
+      this[key] = updates[key];
+    }
+  });
+
+  this.updatedAt = new Date();
+}
+
+4.  The Snippet i didnot understand is  
+const formatTask = (task) => {
+const statusSymbol = {
+[TaskStatus.TODO]: '[ ]',
+[TaskStatus.IN_PROGRESS]: '[>]',
+[TaskStatus.REVIEW]: '[?]',
+[TaskStatus.DONE]: '[✓]'
+};
+
+its explation is ->
+ formatTask is a display helper in clip.js .it takes one task object and converts into readable termial task 
+ (const formatTask = (task) => {})
+ The statusSymbol object maps each internal status to a visual symbol 
+ ([TaskStatus.TODO]: '[ ]')
+ The square brackets means "use the value of TaskStatus.TODO as the object key" Since TaskStatus.TODO is likey "todo", this becomes:
+ {
+  todo: '[ ]',
+  in_progress: '[>]',
+  review: '[?]',
+  done: '[✓]'
+}
+Later, the Formatter can display the correct symbol with 
+statusSymbol[task.status]
+This function only formats outputs. it does not, update,save, or delete tasks 
+
+EXECUTION FLOW FOR List 
+when the user runs node cli.js list the flow is 
+cli.js command parser
+  -> taskManager.listTasks(...)
+  -> app.js TaskManager.listTasks()
+  -> storage.js getAllTasks()
+  -> cli.js formatTask(task)
+  -> console.log(...)  for a filteres list, app.js calls a different storage method 
+                       --status  -> getTasksByStatus()
+                       --priority -> getTasksByPriority()
+                       --overdue -> getOverdueTasks()
+
+HOW FILES INTERACT WITH EACH OTHER 
+
+cli.js its user-interfaces layers , its defines the commands like create, list, status, show, and delete. Calls TaskManager amd Displays success, failure or formatted task output 
+
+app.js its the coodrinator layer, It exposese operations such as createTask() and updateTaskStatus(), Converts or Validates input, Creates Task object, Desides which storage operations to call
+
+modelS.js its the domain layer , it defines the task class, Task status, TaskPriority and Behaviour asuch as update(), markAsDone(), isOverDue()
+
+storage.js its persistence layer. It keeps tasks in memory, Loads tasks from tasks.json, Saves tasks to tasks.json, And adds, retrieves, updates, filters, and deletes tasks
+
+EXTERNAL DEPENDENCIES 
+commander in cli.js for command-line parsing
+uuid in models.js for generating task IDs 
+Node.js fs in srorage.js for reading and writing files
+Node.js path is used by the storage implementation 
+tasks.json as local persistent storage 
+
+COMPLEX CODE BLOCKS 
+
+Conditional due-date formatting 
+const dueStr = task.dueDate
+  ? `Due: ${task.dueDate.toISOString().split('T')[0]}`
+  : 'No due date';
+This is a ternary expression -> if task.dueDate exists, format it as YYYY-MM-DD , otherwise , display "No due Date"
+
+MENTAL MODEL 
+when a task is passing through a pipeline 
+Example of task creation
+
+Terminal input                        create command
+CLI command                           -> createTask()
+TaskManager method                    -> new Task(...)
+Task or storage operation             -> storage.addTask(...)
+saved task data                       -> storage.save()
+formatted terminal output             -> tasks.json
+
+SMALL VALIDATION 
+Add a new task status requirement
+Add a new status to the task system and make sure tasks with that status display a distinct symbol in the CLI. Do not change how existing statuses display.
+
+Change task list output requirement
+Update the formatted task output so that every task displays its full ID in addition to the shortened ID. Keep the existing status, priority, date, and tag output.
+
+Add a filtering requirement
+Add a CLI option that lists only tasks containing a specified tag. The option must travel through the CLI, application, and storage layers rather than filtering directly inside the display formatter
+
+EXRCISE PART 2 
+Deepen Understanding Through Guided Questions
+
+I'd like your help in deepening my understanding of a codebase by you acting as my senior development pair programmer.
+
+First, I'll share my current understanding of the code I'm exploring. Please acknowledge what parts I've understood correctly, then guide me with thoughtful questions rather than direct explanations.
+
+## My Current Understanding:
+
+I'm exploring a JavaScripit Application its framework is Node.js. It seems to be a task management application with four files app.js, cli.js, models.js, storage.js. app.js seems to be the coordinater of the other files. the application as able to create a task , update it, delete, save a task ans its also stored ina storage. From what I can tell, it seems to [describe what you think this code does].
+
+The main files involved appear to be:
+- cli.js
+- app.js
+- models.js 
+- storage.js
+
+I think the code works like this:
+lets say for example i want to create a task when the its starts in cli..js in the user-interface then to app.js where the command is executed and coordinated then to model.js where the task is given a class and behaviour then finally ro storage where the task is stored 
+
+What's still unclear to me is why cant app.js and cli.js be one file that becames the userinterface and coordinater.
+
+## What I'd like from you:
+
+1. Acknowledge what parts of my understanding seem accurate
+2. Ask me 3-5 thoughtful questions that will help me discover insights about:
+   - What specific parts of the code actually do
+   - How data moves through these functions
+   - What happens in different scenarios (like error cases)
+   - Why certain implementation choices were made
+
+3. For some questions, ask me to share specific code snippets that would help answer the question
+4. End with a practical question about how I might use or modify this code
+
+Please don't give me direct explanations - help me discover the answers through guided questioning.
+
+RESPONCE 
+
+One detail to investigate: does every update pass through models.js, or do some updates modify task properties directly before saving?
+
+Consider these questions:
+
+In cli.js, find the handler for the create command. What arguments does it receive, and which exact TaskManager method does it call? Share that handler if you would like to trace the first step together.
+
+In app.js, examine createTask(). Where is the Task object constructed, and what information is passed into its constructor? What does this suggest about the responsibility of models.js?
+
+Compare updateTaskStatus() in app.js with update() and markAsDone() in models.js. Why might setting the status to done use a different path from setting it to review? Share those methods if you want to reason through the difference.
+
+In storage.js, what happens inside addTask() and save()? What would happen if saving failed? Does the caller in cli.js appear to know that persistence failed?
+
+Look at the bottom of cli.js. What would change if the command definitions were moved into app.js? Which file would then need to know about terminal arguments, output formatting, and error messages?
+
+As a practical next step: choose one small feature, such as filtering tasks by tag. Which file would you modify first, what data would need to move between the layers, and how would you test that the feature remains independent of terminal formatting?
+
+Answers====
+
+questions asked 1. program
+.command('list')
+.description('List all tasks')
+.option('-s, --status <status>', 'Filter by status')
+.option('-p, --priority <priority>', 'Filter by priority')
+.option('-o, --overdue', 'Show only overdue tasks')
+.action((options) => {
+const tasks = taskManager.listTasks(options.status, options.priority, options.overdue);
+if (tasks.length > 0) {
+tasks.forEach(task => {
+console.log(formatTask(task));
+console.log('-'.repeat(50));
+});
+} else {
+console.log('No tasks found matching the criteria.');
+}
+});
+the calls formatTask method
+
+it created a task with a due date ,tag ,priority ,title then model.js creates its behaviour based on what was passed down by app.js
+
+the update task in app.js will only return if the task is done which will be saved to the storage if not it wont be save to storage and marked complete else the task shuld be updated with the taskId also given a new statusValue but
+the one in models .js staed that every task update the should be a date on it when updated which means this only applies to a task that is already availble and created
+when its marked done the should be a date of completion which will be the same as update date
+
+4.if a task fails then an error massage will refelect and will not be stored in the json storagepath
+on addtask the task will only be added if the task is saved and was successful in save
+
+the terminal wouldnot reflect the error ar uncompleted inputs , the file thta would need to know about termila arguments would be model.js because it would be checking the behaviour of the task then output the behaviour to the terminal and error massage alos the output formmating
+
+
+EXERCISE PART 3 
+Mapping Data Flow
+
+
+flowchart TD
+    A[CLI create command] --> B[TaskManager.createTask]
+    B --> C[Validate and convert due date]
+    C --> D[Task constructor]
+    D --> E[Task object in memory]
+    E --> F[TaskStorage.addTask]
+    F --> G[storage.tasks object]
+    G --> H[TaskStorage.save]
+    H --> I[JSON.stringify]
+    I --> J[tasks.json]
+
+TASK CHANGES THROUGH COMPLETION 
+flows through these stages 
+ 1. cli.js parses the command-line aguments 
+ 2. it calls taskManager.createTask(...)
+ 3. app.js recieves the title, description, priority, due data string, and tags 
+ 4. app.js converts the due date string into a JS Date
+ 5. models.js creates a Task object 
+ 6. The construction generates and ID  and sets defaults such as 
+     - status = TODO 
+     - createdAt 
+     - updatedAt 
+     - completedAt = null
+ 7. storage.js places the task in this.task 
+ 8. save() converts the in-memory object to JSON and writes it to tasks.json 
+ 9. The task ID travels back to cli.js, which prints a success message 
+
+POTENTIAL FAILURE 
+ - invalid date input in app.js 
+ - Missing or malformed tasks.json
+ - File read permission or file-not-found problems 
+ - invalid JSON structure 
+ - file write permission or disk errors 
+ - Missing task IDs during retrieval, updates, or deletion 
+ - invalid priority or status value 
+ - invalid task data loaded from JSON fils 
+
+HOW THE APPLICATION PERSIST THE CHANGES 
+ - Invalid dates return null from createTask()
+ - missing files are tolerated because load() only reads when files exists
+ - Malformes saved data is caught and logged 
+ - Missing task IDs generally return undefined or false
+
+
+EXERCISE PART 4 

@@ -1,0 +1,1079 @@
+# SimpleCMS
+
+A lightweight content management system for blogs and small websites. SimpleCMS provides a practical admin experience for creating and managing content, organizing media, controlling user access, and improving site visibility.
+
+## Features
+
+- **Markdown content editor** for writing and formatting posts and pages.
+- **Media library** for uploading and organizing images and documents.
+- **Role-based user management** with different permission levels.
+- **Custom themes and templates** using Handlebars.
+- **SEO tools** for page titles, descriptions, and other metadata.
+- **Analytics integration** for connecting site traffic and engagement data.
+
+## Technology Stack
+
+- [Node.js](https://nodejs.org/) 12 or later
+- [Express](https://expressjs.com/)
+- [MySQL](https://www.mysql.com/) 5.7 or later
+- [Handlebars](https://handlebarsjs.com/)
+- [jQuery](https://jquery.com/)
+
+## Requirements
+
+Before installing SimpleCMS, make sure the following are available on your system:
+
+- Node.js 12 or later
+- npm, included with Node.js
+- MySQL 5.7 or later
+- Git, if cloning the project repository
+
+## Installation
+
+### 1. Get the project
+
+Clone the repository or download the project files, then move into the project directory:
+
+```bash
+git clone <repository-url>
+cd simplecms
+```
+
+Replace `<repository-url>` with the URL of your repository.
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Create the database
+
+Create a MySQL database and a dedicated user for the application:
+
+```sql
+CREATE DATABASE simplecms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'simplecms_user'@'localhost' IDENTIFIED BY 'change-this-password';
+GRANT ALL PRIVILEGES ON simplecms.* TO 'simplecms_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+If the project includes database migrations or a schema file, run it against the new `simplecms` database before starting the application.
+
+### 4. Configure the application
+
+Create a `.env` file in the project root, or update the configuration file used by the application:
+
+```env
+NODE_ENV=development
+PORT=3000
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=simplecms
+DB_USER=simplecms_user
+DB_PASSWORD=change-this-password
+SESSION_SECRET=replace-with-a-long-random-value
+UPLOAD_DIR=uploads
+```
+
+Do not commit passwords, session secrets, or other credentials to source control. Add `.env` to `.gitignore` if it is not already ignored.
+
+### 5. Prepare writable directories
+
+Ensure the upload directory exists and is writable by the Node.js process:
+
+```bash
+mkdir uploads
+```
+
+On Windows, create the folder in File Explorer or with PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force uploads
+```
+
+### 6. Start SimpleCMS
+
+For development, use the project’s development script when available:
+
+```bash
+npm run dev
+```
+
+Otherwise, start the application with:
+
+```bash
+npm start
+```
+
+Open `http://localhost:3000` in a browser. If the project uses a different port or entry point, use the value defined in its package scripts and configuration.
+
+## Basic Usage
+
+### Open the site
+
+Visit the configured application URL, usually:
+
+```text
+http://localhost:3000
+```
+
+### Sign in to the admin dashboard
+
+Open the admin area at:
+
+```text
+http://localhost:3000/admin
+```
+
+Sign in with an administrator account created during project setup. If no account creation flow exists yet, create the first administrator through the project’s seed script or database setup process.
+
+### Create and publish content
+
+1. Open the admin dashboard.
+2. Choose the content editor.
+3. Enter a title and Markdown content.
+4. Add SEO metadata and select a theme or template when available.
+5. Save the draft or publish it.
+6. View the resulting page from the public site.
+
+Example Markdown:
+
+```markdown
+# Welcome to SimpleCMS
+
+SimpleCMS makes it easy to publish **well-structured content**.
+
+- Write in Markdown
+- Add images from the media library
+- Publish when ready
+```
+
+### Upload media
+
+1. Open the media library in the admin dashboard.
+2. Upload an image or document.
+3. Copy the generated media URL or insert the item from the editor.
+4. Confirm that the `uploads` directory is writable and protected according to your deployment policy.
+
+## Configuration
+
+Configuration is stored in the `/config` directory and may also be supplied through environment variables. Keep environment-specific values outside the source code.
+
+| Variable | Purpose | Example |
+| --- | --- | --- |
+| `NODE_ENV` | Runtime environment | `development` |
+| `PORT` | HTTP port | `3000` |
+| `DB_HOST` | MySQL hostname | `localhost` |
+| `DB_PORT` | MySQL port | `3306` |
+| `DB_NAME` | Database name | `simplecms` |
+| `DB_USER` | Database user | `simplecms_user` |
+| `DB_PASSWORD` | Database password | `change-this-password` |
+| `SESSION_SECRET` | Session signing secret | A long random value |
+| `UPLOAD_DIR` | User-upload directory | `uploads` |
+
+For production deployments, also review upload size limits, allowed file types, session cookie settings, logging, HTTPS, and database connection limits.
+
+## Project Structure
+
+```text
+/admin        - Admin dashboard interface
+/controllers  - Request handlers
+/models       - Database models
+/routes       - Route definitions
+/views        - Handlebars templates
+/public       - Static assets
+/uploads      - User-uploaded content
+/config       - Configuration files
+/utils        - Utility functions
+```
+
+## Troubleshooting
+
+### The application cannot connect to MySQL
+
+- Confirm that the MySQL service is running.
+- Check `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, and `DB_PASSWORD`.
+- Verify that the configured user has privileges on the `simplecms` database.
+- Confirm that the database schema or migrations have been applied.
+
+### Port 3000 is already in use
+
+Start the application on another port:
+
+```powershell
+$env:PORT=3001; npm start
+```
+
+On macOS or Linux:
+
+```bash
+PORT=3001 npm start
+```
+
+### Uploaded files fail or do not display
+
+- Confirm that the upload directory exists.
+- Check that the Node.js process can write to it.
+- Verify the configured `UPLOAD_DIR` and static-file route.
+- Check upload size and file-type restrictions.
+
+### Templates or static assets are missing
+
+- Confirm that the application is running from the project root.
+- Check the `/views` and `/public` paths in the Express configuration.
+- Verify that the requested template or asset name matches its filename and case.
+- Restart the application after changing configuration.
+
+### Markdown is shown as plain text
+
+Check that the editor or controller converts Markdown to HTML before rendering and that the resulting HTML is passed to Handlebars using the project’s intended trusted-content mechanism. Sanitize user-generated HTML before displaying it.
+
+## Contributing
+
+Contributions are welcome. To propose a change:
+
+1. Create a fork or feature branch.
+2. Make a focused change using the existing project style.
+3. Add or update tests for changed behavior.
+4. Run the available test, lint, and formatting commands.
+5. Update documentation when behavior or configuration changes.
+6. Open a pull request with a clear description of the problem and solution.
+
+Please avoid committing secrets, generated uploads, local configuration files, or unrelated formatting changes. For security vulnerabilities, contact the project maintainer privately instead of opening a public issue.
+
+## License
+
+No license has been specified for SimpleCMS yet. Until a license is added to the repository, all rights are reserved and reuse, modification, or redistribution should be treated as requiring the copyright holder’s permission.
+
+To publish this project for reuse, add a license file such as `LICENSE` and update this section with the selected license and copyright holder.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+PROMPT 2 
+
+
+# Understanding the SimpleCMS Codebase
+
+This guide explains how to explore SimpleCMS and understand how its main components work together. It is written for beginners who are new to the project or to Node.js applications.
+
+SimpleCMS is a lightweight content management system for blogs and small websites. It uses Node.js and Express for the server, MySQL for persistent data, Handlebars for HTML templates, and jQuery for browser-side interactions.
+
+> **Scope note:** The project brief identifies the main directories, but it does not provide the implementation files or exact function names. Where a detail must be confirmed in the repository, this guide labels it as an assumption or verification point.
+
+## Prerequisites and Access
+
+Before starting, make sure you have:
+
+- Read access to the SimpleCMS repository.
+- Node.js 12 or later and npm installed.
+- MySQL 5.7 or later, if you need to run the application.
+- A code editor such as Visual Studio Code.
+- Permission to create a local database and edit local configuration files.
+- Access to a test account or administrator account if you need to inspect the admin dashboard.
+
+Use a development database rather than production data while learning. Do not copy production passwords, session secrets, or uploaded files into a local workspace.
+
+## What You Are Trying to Learn
+
+By the end of this walkthrough, you should be able to answer these questions:
+
+1. Where does an incoming browser request enter the application?
+2. Which route handles that request?
+3. Which controller function contains the application logic?
+4. Which model reads or writes the database?
+5. Which Handlebars view renders the response?
+6. Which files provide browser-side behavior or styling?
+7. Where are configuration values, uploads, and shared utilities defined?
+
+## Step 1: Prepare a Safe Local Copy
+
+1. Clone or open the repository in your editor.
+2. Install its dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Review `package.json` before running commands. Look for the `scripts` section and identify the available commands, such as `start`, `dev`, `test`, or `lint`.
+4. Create a local configuration file using the project’s documented format. Typical values may look like this:
+
+   ```env
+   NODE_ENV=development
+   PORT=3000
+   DB_HOST=localhost
+   DB_PORT=3306
+   DB_NAME=simplecms
+   DB_USER=simplecms_user
+   DB_PASSWORD=your-local-password
+   SESSION_SECRET=your-local-secret
+   UPLOAD_DIR=uploads
+   ```
+
+5. Start MySQL and make sure the configured database exists.
+6. Create the upload directory if it is missing:
+
+   ```bash
+   mkdir uploads
+   ```
+
+7. Start the application using the script confirmed in `package.json`:
+
+   ```bash
+   npm start
+   ```
+
+   Use `npm run dev` instead if the project provides a development script.
+
+> **Common mistake:** Do not assume that `npm start`, port `3000`, or `.env` are definitely supported. Confirm each one in `package.json` and `/config` first.
+
+[Placeholder: Insert a screenshot of the project opened in the editor, showing the top-level folders and the terminal with the application running.]
+
+## Step 2: Map the Project Before Reading Details
+
+Start at the top level and make a short map of the application. SimpleCMS is organized around responsibilities:
+
+```text
+Browser
+  |
+  v
+/routes       Selects the endpoint and HTTP method
+  |
+  v
+/controllers  Coordinates validation, business actions, and responses
+  |
+  v
+/models       Reads and writes MySQL data
+  |
+  +-------> /utils       Shared helper functions
+  |
+  v
+/views        Handlebars templates returned to the browser
+  |
+  v
+/public       Browser assets such as JavaScript, CSS, and images
+```
+
+The remaining directories support the application around this request path:
+
+| Directory | Purpose | What to look for |
+| --- | --- | --- |
+| `/admin` | Admin dashboard interface | Dashboard pages, admin scripts, navigation, and permission-aware controls |
+| `/controllers` | Request handlers | Functions that validate input, call models, and choose a response |
+| `/models` | Database models | Queries, database connection use, and data transformations |
+| `/routes` | Route definitions | URL paths, HTTP methods, middleware, and controller references |
+| `/views` | Handlebars templates | Page layout, forms, loops, conditionals, and rendered data |
+| `/public` | Static assets | jQuery code, CSS, browser images, and other public files |
+| `/uploads` | User-uploaded content | Media files and upload-related storage; normally do not commit local contents |
+| `/config` | Configuration files | Database settings, environment loading, sessions, and application options |
+| `/utils` | Shared utilities | Validation, formatting, Markdown processing, permissions, and reusable helpers |
+
+[Placeholder: Insert a screenshot of the expanded project tree with the directories above highlighted.]
+
+## Step 3: Find the Application Entry Point
+
+The entry point is the file that creates the Express application and starts the HTTP server. Its name is commonly `app.js`, `server.js`, or `index.js`, but verify it rather than guessing.
+
+1. Open `package.json`.
+2. Check the `main` field and the `start` or `dev` scripts.
+3. Open the referenced file.
+4. Identify where the code:
+   - Creates an Express application.
+   - Loads configuration.
+   - Enables JSON, form, cookie, or session middleware.
+   - Serves `/public` files.
+   - Registers route modules.
+   - Configures Handlebars.
+   - Starts listening on a port.
+
+A simplified Express entry point may look like this:
+
+```javascript
+const express = require('express');
+const path = require('path');
+
+const app = express();
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', require('./routes/site'));
+app.use('/admin', require('./routes/admin'));
+
+app.listen(process.env.PORT || 3000);
+```
+
+This is an example of the relationships to look for, not a replacement for the project’s actual implementation.
+
+> **Common mistake:** A route file may be registered under a prefix. A route declared as `/posts` can become `/admin/posts` when mounted with `app.use('/admin', router)`.
+
+## Step 4: Trace One Public Request
+
+Choose one simple public page and trace it from the browser to the database and back. A content page is a useful example.
+
+1. Start with the URL, such as `/posts/example-post`.
+2. Search `/routes` for the path and HTTP method.
+3. Record the controller function attached to the route.
+4. Open that function in `/controllers`.
+5. Note input validation, authentication checks, and calls into `/models` or `/utils`.
+6. Follow the model function to its MySQL query.
+7. Return to the controller and identify the Handlebars view it renders.
+8. Open that template in `/views` and list the data fields it expects.
+9. Check `/public` for JavaScript or CSS that affects the page.
+
+Use this worksheet while exploring:
+
+```text
+Request URL:       ______________________________
+HTTP method:       ______________________________
+Route file:        ______________________________
+Controller:        ______________________________
+Model function:    ______________________________
+Database tables:   ______________________________
+View/template:     ______________________________
+Browser assets:    ______________________________
+Authentication:    ______________________________
+```
+
+A typical flow looks like this:
+
+```text
+GET /posts/example-post
+  -> route matches the URL
+  -> controller loads the post slug
+  -> model queries MySQL
+  -> controller supplies post data to Handlebars
+  -> view renders HTML
+  -> browser loads public CSS and jQuery behavior
+```
+
+[Placeholder: Insert a screenshot of the route, controller, model, and view open side by side, with the related names highlighted.]
+
+## Step 5: Trace an Admin Write Operation
+
+Reading a page shows how data flows out of the application. Creating or editing content shows how data flows into it.
+
+Use a test account and a test post:
+
+1. Open the admin URL and sign in.
+2. Find the form for creating or editing content.
+3. Inspect the form’s `action` and `method` attributes in the Handlebars view.
+4. Find the matching route in `/routes`.
+5. Follow its controller function.
+6. Identify validation, permission checks, Markdown handling, and error behavior.
+7. Follow the model call that inserts or updates the MySQL record.
+8. Check the redirect or response returned after saving.
+9. Confirm how the updated record appears on the public page.
+
+The expected relationship is usually:
+
+```text
+Admin form
+  -> POST or PUT route
+  -> authentication and permission middleware
+  -> controller validates submitted fields
+  -> model writes to MySQL
+  -> controller redirects or renders an error
+  -> public view displays the saved content
+```
+
+Pay special attention to these questions:
+
+- Is the user authenticated before the write occurs?
+- Is the user authorized for this specific action?
+- Are required fields checked on the server, not only in jQuery?
+- Are Markdown and uploaded files handled safely?
+- Does a failed database write preserve the user’s entered data?
+
+## Step 6: Understand the Main Components
+
+### Routes
+
+Routes define the application’s public entry points. For each route, record:
+
+- HTTP method: `GET`, `POST`, `PUT`, or `DELETE`.
+- URL pattern and route parameters.
+- Middleware, especially authentication and permissions.
+- Controller function that receives the request.
+
+Routes should remain easy to scan. Complex database or business logic usually belongs in controllers, models, or utilities instead of route declarations.
+
+### Controllers
+
+Controllers coordinate a request. A controller commonly:
+
+1. Reads route parameters, query values, or form data.
+2. Validates the input.
+3. Checks authentication or permissions when middleware does not already do so.
+4. Calls a model or utility.
+5. Renders a Handlebars view, redirects, or returns an error response.
+
+When reviewing a controller, check whether errors are handled consistently and whether user input is trusted too early.
+
+### Models
+
+Models represent application data and database operations. Identify:
+
+- Which model maps to posts, users, media, themes, or analytics settings.
+- Which tables each function reads or changes.
+- Whether queries use parameters rather than string concatenation.
+- Whether database connections are reused and closed correctly.
+- Whether missing records return a clear result.
+
+Parameterized queries are important:
+
+```javascript
+const sql = 'SELECT * FROM posts WHERE slug = ?';
+const [rows] = await connection.query(sql, [slug]);
+```
+
+Avoid constructing SQL by directly concatenating request values.
+
+### Views and Handlebars
+
+Views turn controller data into HTML. When opening a template, look for:
+
+- The layout or partials it uses.
+- Variables supplied by the controller.
+- Loops over posts or media items.
+- Conditional controls based on user roles.
+- Forms and their action URLs.
+- Links to files in `/public` or `/uploads`.
+
+Do not bypass Handlebars escaping for untrusted values unless the content has been deliberately sanitized.
+
+### Public Assets and jQuery
+
+The `/public` directory contains code that runs in the browser. Follow a page’s script references to understand:
+
+- Form validation and submission behavior.
+- AJAX requests.
+- Editor interactions and previews.
+- Media selection or upload controls.
+- Admin navigation and confirmation dialogs.
+
+Client-side validation improves the experience, but server-side validation is still required because browser code can be bypassed.
+
+### Configuration and Utilities
+
+`/config` controls environment-specific behavior, such as database access, sessions, view setup, and upload settings. `/utils` should contain reusable operations that do not belong to one route, such as formatting, permission checks, Markdown conversion, or validation.
+
+Record which values are required, which have defaults, and which must never be committed to source control.
+
+## Step 7: Review Assumptions and Improvement Opportunities
+
+Document findings without changing behavior during the first pass. Use a table like this:
+
+| Area | Current behavior to verify | Potential issue | Low-risk improvement |
+| --- | --- | --- | --- |
+| Authentication | Which routes require sign-in? | A forgotten middleware registration could expose admin actions. | Add route-level authorization tests. |
+| Authorization | How are roles checked? | Authentication may be confused with permission. | Centralize permission checks and test each role. |
+| Database | How are queries constructed? | String-built queries can allow SQL injection. | Use parameterized queries and validate inputs. |
+| Markdown | Where is Markdown converted? | Unsanitized HTML can create cross-site scripting risk. | Sanitize rendered HTML and add malicious-input tests. |
+| Uploads | Which files and sizes are accepted? | Unrestricted uploads can consume storage or upload executable content. | Restrict type, size, filename, and storage location. |
+| Sessions | How are cookies and secrets configured? | Weak secrets or insecure cookies can expose sessions. | Use environment secrets and secure production cookie settings. |
+| Errors | What does the user see after a failure? | Raw database errors may reveal internals. | Log details privately and show a safe user message. |
+| Configuration | Are defaults documented? | A missing value may silently select an unsafe default. | Fail fast for required production settings. |
+| Tests | Which flows are covered? | Refactoring may break publishing or permissions. | Add tests for public reads and admin writes. |
+
+### Keep Functionality Stable
+
+When improving the codebase:
+
+1. Document the current behavior before refactoring.
+2. Add a focused test around the behavior you need to preserve.
+3. Make one small change at a time.
+4. Run the relevant tests after each change.
+5. Compare the request, response, database record, and rendered page before and after.
+6. Avoid changing routes, database columns, or template variables without checking their callers.
+
+## Step 8: Create a Simple Component Map
+
+Finish your exploration by writing a short map for the next developer. For example:
+
+```text
+Public article page
+  Route:      GET /posts/:slug
+  Controller: postsController.show
+  Model:      postModel.findBySlug
+  View:       views/posts/show.hbs
+  Assets:     public/js/posts.js, public/css/site.css
+
+Admin content editor
+  Route:      POST /admin/posts
+  Middleware: requireLogin, requireEditor
+  Controller: postsController.create
+  Model:      postModel.create
+  View:       views/admin/posts/form.hbs
+```
+
+Replace the example names with the names found in the actual repository. Include links to the exact files in your team documentation when possible.
+
+## Common Mistakes
+
+- Starting with templates and missing the route that supplies their data.
+- Assuming a directory name tells you the exact runtime behavior.
+- Treating client-side jQuery validation as a security control.
+- Editing production configuration while intending to use a local database.
+- Testing uploads with real user files instead of safe test files.
+- Calling a user authenticated without checking whether they have the required role.
+- Changing a model query without checking every controller that uses it.
+- Rendering raw Markdown or HTML without confirming that it is sanitized.
+- Forgetting that route prefixes can change the final URL.
+- Reporting a suspected issue without reproducing it or recording the evidence.
+
+## Troubleshooting
+
+### The application will not start
+
+- Check the first error printed in the terminal.
+- Run `npm install` and confirm the Node.js version.
+- Inspect the `scripts` and `main` fields in `package.json`.
+- Verify required configuration values and the selected port.
+- Make sure the entry-point file exists at the path used by the start script.
+
+### The page returns 404 Not Found
+
+- Confirm the URL and HTTP method.
+- Search `/routes` for the endpoint.
+- Check whether the router is mounted under a prefix such as `/admin`.
+- Confirm that the router is registered by the application entry point.
+- Check route order when a parameterized route may be matching too broadly.
+
+### The page loads but has no data
+
+- Add temporary logging at the controller boundary while debugging locally.
+- Confirm the model query returns rows for the current database.
+- Check that the controller passes the variable name expected by the Handlebars view.
+- Verify that the template loops and conditionals use the correct property names.
+- Confirm that you are connected to the intended database.
+
+### A form submission does not save
+
+- Inspect the form `action` and `method`.
+- Check browser developer tools for a failed request or validation error.
+- Confirm the matching route accepts that method.
+- Check authentication and role middleware.
+- Review controller validation and the model’s database error.
+- Verify that required database columns are receiving values.
+
+### The database connection fails
+
+- Make sure MySQL is running.
+- Confirm host, port, database name, username, and password.
+- Test the credentials with a MySQL client.
+- Check that the database schema has been created.
+- Look for connection-pool or network errors in the server log.
+
+### Images or uploaded documents do not display
+
+- Confirm the upload directory exists and is writable.
+- Check the path stored in the database against the URL generated in the view.
+- Verify that Express serves the upload location intentionally.
+- Check file permissions, upload limits, and allowed file types.
+- Avoid exposing sensitive files through a public static route.
+
+### A template variable is undefined
+
+- Compare the variable name in the controller with the name used in the `.hbs` file.
+- Check whether a partial expects data that the parent template did not pass.
+- Verify the controller’s error and empty-result paths, not only the success path.
+- Restart the application if templates are cached in the current environment.
+
+### Changes seem to have no effect
+
+- Confirm that the edited file belongs to the running project.
+- Check the terminal for the actual working directory.
+- Restart the server if automatic reload is unavailable.
+- Clear browser cache for changed public assets.
+- Verify that the request is reaching the route you edited.
+
+## Completion Checklist
+
+You have completed the codebase walkthrough when you can:
+
+- [ ] Start the application locally.
+- [ ] Identify the entry point and registered middleware.
+- [ ] Trace one public read from route to template.
+- [ ] Trace one admin write from form to database.
+- [ ] Explain the role of each top-level directory.
+- [ ] Identify authentication and authorization checks.
+- [ ] Describe how uploads and Markdown are handled.
+- [ ] Record at least three evidence-based improvement opportunities.
+- [ ] Run the relevant tests or document why they are unavailable.
+- [ ] Share a component map with exact repository file names.
+
+
+
+
+
+
+
+
+
+
+
+
+PROMPT 3 
+
+# SimpleCMS FAQ
+
+SimpleCMS is a lightweight content management system for blogs and small websites. It helps blog owners, website administrators, content editors, and small business website managers create and maintain website content, media, users, themes, SEO settings, and analytics.
+
+This FAQ provides practical answers to common questions about installing, configuring, and using SimpleCMS.
+
+## Getting Started and Installation
+
+### What do I need before installing SimpleCMS?
+
+You need:
+
+- Node.js 12 or later.
+- npm, which is included with Node.js.
+- MySQL 5.7 or later.
+- Access to create a MySQL database and user.
+- Permission to read the project files and create a local configuration file.
+
+For production, also prepare a secure session secret, a protected server, HTTPS, regular database backups, and a writable upload directory.
+
+### How do I install SimpleCMS?
+
+1. Clone or download the project.
+2. Open a terminal in the project directory.
+3. Install the Node.js dependencies:
+
+   ```bash
+   npm install
+   ```
+
+4. Create a MySQL database and user:
+
+   ```sql
+   CREATE DATABASE simplecms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+   CREATE USER 'simplecms_user'@'localhost' IDENTIFIED BY 'change-this-password';
+   GRANT ALL PRIVILEGES ON simplecms.* TO 'simplecms_user'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
+
+5. Configure the database and application settings in the project’s supported configuration file or environment file.
+6. Apply the project’s schema or migrations, if provided.
+7. Make sure the upload directory exists and is writable.
+8. Start the application with the command defined in `package.json`, commonly:
+
+   ```bash
+   npm start
+   ```
+
+Open the configured application URL, often `http://localhost:3000`.
+
+### What configuration values are usually required?
+
+The exact names depend on the project configuration, but common values include:
+
+```env
+NODE_ENV=development
+PORT=3000
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=simplecms
+DB_USER=simplecms_user
+DB_PASSWORD=your-local-password
+SESSION_SECRET=your-long-random-secret
+UPLOAD_DIR=uploads
+```
+
+Never commit real passwords or session secrets to source control. Check `/config` and `package.json` to confirm the names used by your installation.
+
+### How do I open the admin dashboard?
+
+Open the admin URL configured by the application, commonly:
+
+```text
+http://localhost:3000/admin
+```
+
+Sign in with an administrator account. If no administrator exists, use the project’s supported setup or seed process rather than manually editing password values in the database.
+
+### How do I update SimpleCMS safely?
+
+1. Back up the database and uploaded files.
+2. Review the release notes and dependency changes.
+3. Test the update in a development or staging environment.
+4. Install the updated dependencies.
+5. Apply any documented database migrations.
+6. Confirm that publishing, login, uploads, themes, and analytics still work.
+7. Deploy during a maintenance window if the update requires downtime.
+
+## Content Management
+
+### How do I create a blog post?
+
+1. Sign in to the admin dashboard.
+2. Open the content editor and choose **New post** or its equivalent.
+3. Enter a title and write the content using the supported Markdown format.
+4. Add an image or document from the media library if needed.
+5. Add SEO metadata before publishing.
+6. Save the post as a draft or publish it.
+7. Open the public page to confirm the title, content, links, and media display correctly.
+
+### How do I edit an existing post?
+
+Open the post in the admin dashboard, make the required changes, and save or republish it. Before editing a published post, check whether the application supports revisions or drafts. If it does not, keep a copy of important content before making a major change.
+
+### How do I save a draft without publishing it?
+
+Use the editor’s **Save draft** action if available. A draft should remain unavailable from the public site until it is explicitly published. Verify this with a private browser window or a signed-out session.
+
+### What Markdown can I use?
+
+Use the Markdown syntax supported by the project’s Markdown processor. Basic examples include headings, emphasis, links, lists, and images:
+
+```markdown
+# Article title
+
+This is **important** content.
+
+- First item
+- Second item
+
+[Read more](https://example.com)
+```
+
+Avoid pasting untrusted HTML into content unless SimpleCMS documents how it is sanitized. Markdown converted to HTML must be handled safely before it is displayed.
+
+### Can I preview content before publishing?
+
+Use the editor’s preview function if available. Review the rendered headings, links, images, spacing, and mobile layout. If no preview exists, save a draft and inspect it through the application’s draft or staging workflow.
+
+### How do I delete or unpublish content?
+
+Open the post or page in the admin dashboard and use the documented delete, archive, or unpublish action. Confirm the action before proceeding. If the system does not have an archive or recycle-bin feature, create a database backup or export important content first.
+
+## Media Management
+
+### How do I upload images and documents?
+
+1. Open the media library in the admin dashboard.
+2. Choose **Upload**.
+3. Select an image or document that meets the configured type and size limits.
+4. Wait for the upload to finish.
+5. Copy the media URL or insert the item from the content editor.
+6. Open the public page to confirm that the file is accessible.
+
+Uploaded files are commonly stored in `/uploads`, but the actual location is controlled by the project configuration.
+
+### Which media file types are supported?
+
+The supported types and size limits depend on the application configuration. Confirm them in the upload controller, configuration files, or admin interface. Only allow file types that the website genuinely needs, and reject executable or server-side script files.
+
+### How should I name uploaded files?
+
+Use short, descriptive names with letters, numbers, hyphens, and file extensions. Avoid spaces, special characters, sensitive information, and names that could overwrite another file. The application should generate safe unique filenames where possible.
+
+### Can I replace an image used in an existing post?
+
+If the media library supports replacement, use its replace action and confirm that existing references are preserved. Otherwise, upload the new file, update the post to use its new URL, and remove the old file only after confirming that no other page uses it.
+
+### How do I keep the media library organized?
+
+Use descriptive filenames, remove unused files according to your retention policy, and avoid uploading duplicate versions. Keep backups of important media. Do not treat the public upload directory as a replacement for backups.
+
+## Users and Permissions
+
+### How do I manage users?
+
+Administrators can usually create, edit, deactivate, or remove users from the user-management area. Use the application’s password reset and account-status features when available. Avoid changing password hashes directly in MySQL.
+
+### What are permissions used for?
+
+Permissions control which users can view administrative screens and perform actions such as creating posts, publishing content, uploading media, managing users, or changing site settings. Authentication confirms who a user is; authorization determines what that user may do.
+
+### How should I assign roles?
+
+Give each user the smallest set of permissions needed for their work. For example:
+
+- **Administrator:** manages users, configuration, themes, content, and integrations.
+- **Editor:** creates, edits, reviews, and publishes content.
+- **Author:** creates and edits their own drafts, if supported.
+- **Contributor:** submits content for review without publishing, if supported.
+
+The exact role names and capabilities depend on the project configuration.
+
+### Why can a user log in but not access a page?
+
+The user may be authenticated but lack the required permission. Check the route’s authorization middleware, the user’s assigned role, and whether the account is active. Also confirm that the permission change was saved and that the user has signed in again if the application caches session permissions.
+
+### How do I remove access from a user?
+
+Deactivate the account or remove its administrative role using the user-management interface. Revoke active sessions if SimpleCMS supports that feature. Do not delete a user record if existing content needs to retain its author relationship unless the application documents how deletion is handled.
+
+## Themes and Templates
+
+### How do I customize the website theme?
+
+1. Back up the current theme and configuration.
+2. Identify the active theme in the admin settings or `/config`.
+3. Review the Handlebars templates in `/views` and the assets in `/public`.
+4. Make a small change in a development environment.
+5. Test the home page, post pages, navigation, forms, error pages, and mobile layout.
+6. Deploy the change only after confirming that all required template variables still render.
+
+### Where are themes and templates stored?
+
+Handlebars templates are commonly stored in `/views`. Theme-specific CSS, JavaScript, and images are commonly stored in `/public`. The `/admin` directory may contain dashboard-specific interface files. Confirm the actual paths in the application’s Handlebars and static-file configuration.
+
+### How do I create a custom template?
+
+Copy an existing template that has similar behavior, preserve the variables supplied by its controller, and change the markup and styling gradually. Register the new template or theme using the application’s documented settings. Test empty results, long titles, missing images, logged-out users, and different permission levels.
+
+### My template shows blank fields. What should I check?
+
+Compare the variable names in the Handlebars template with the object passed by the controller. Check whether the controller’s success, empty-result, and error paths pass the same data shape. Also confirm that a partial receives the values it expects.
+
+## SEO
+
+### How do I configure SEO settings?
+
+Open the SEO or page settings in the admin dashboard and configure, where supported:
+
+- Page or post title.
+- Meta description.
+- URL slug.
+- Canonical URL.
+- Social sharing title, description, and image.
+- Indexing preference.
+
+Keep titles and descriptions accurate, use a readable slug, and avoid duplicating the same metadata across every page.
+
+### What makes a good SEO title and description?
+
+Write a specific title that describes the page and includes its main topic naturally. Write a concise description that explains why someone should visit the page. Avoid keyword stuffing, misleading claims, and repeated boilerplate.
+
+### Why is my new page not appearing in search results?
+
+Search engines may need time to crawl and index the page. Check that:
+
+- The page is published and reachable without an admin session.
+- The page is not marked as no-index.
+- The canonical URL is correct.
+- Internal links point to the page.
+- The site is not blocking crawlers unintentionally.
+- The page has useful, unique content.
+
+Submit the site or sitemap through the relevant search-engine tools when appropriate.
+
+### How do I change a URL slug safely?
+
+Change the slug in the content editor, then check whether SimpleCMS creates a redirect from the old URL. If it does not, configure an appropriate redirect before publishing the new URL so existing links do not break.
+
+## Analytics
+
+### How do I connect analytics?
+
+1. Create or select an analytics property with your analytics provider.
+2. Copy the provider’s site or measurement identifier.
+3. Open SimpleCMS analytics or site settings.
+4. Enter the identifier in the supported field or integration configuration.
+5. Save the settings.
+6. Confirm that the tracking code is included on public pages, not only admin pages.
+7. Use the provider’s real-time or debug report to verify events.
+
+Do not place private API keys in browser-visible templates. Follow the provider’s privacy and consent requirements.
+
+### Why are analytics visits not appearing?
+
+Check that the tracking identifier is correct, the code is present on the public page, and browser extensions or consent settings are not blocking it. Analytics reports can be delayed. Test in a private browser session and use the provider’s real-time diagnostic tools.
+
+### Does analytics track admin visits?
+
+It should generally track public visitor activity rather than administrative work. Check where the tracking code is included and exclude admin routes or internal traffic if the application and analytics provider support that configuration.
+
+## Troubleshooting
+
+### What should I do if the MySQL database connection fails?
+
+1. Confirm that MySQL is running.
+2. Check the host, port, database name, username, and password in the active configuration.
+3. Confirm that the database exists and the user has privileges on it.
+4. Test the credentials with a MySQL client.
+5. Check whether a firewall or container network setting blocks the connection.
+6. Review the server log for the first connection error.
+7. Restart SimpleCMS after correcting configuration values.
+
+Do not publish database credentials in issue reports or logs.
+
+### What should I do if uploaded media is not displaying?
+
+- Confirm that the upload completed successfully.
+- Check that the configured upload directory exists and is writable.
+- Verify that the generated URL points to the correct public route.
+- Confirm that Express intentionally serves that directory.
+- Check file permissions, file type restrictions, and maximum upload size.
+- Inspect the browser network panel for a `404`, `403`, or server error.
+- Confirm that the file was not moved or deleted after the content was published.
+
+### What should I do if the application fails to start?
+
+1. Read the first error in the terminal; later errors may be secondary effects.
+2. Confirm the Node.js version with `node --version`.
+3. Run `npm install` in the project root.
+4. Check the `start` and `dev` scripts in `package.json`.
+5. Confirm that required configuration values exist.
+6. Make sure the configured port is available.
+7. Confirm that MySQL is running if startup checks the database.
+8. Review recent code or dependency changes.
+9. Restart the application after correcting the underlying issue.
+
+### Why does a page return “404 Not Found”?
+
+Check the URL, HTTP method, route prefix, and router registration. An endpoint declared as `/posts` may be available at `/admin/posts` if its router is mounted under `/admin`. Also check whether a parameterized route or middleware is intercepting the request.
+
+### Why does a form submit but not save changes?
+
+Inspect the browser request and server log. Confirm the form action and method, required fields, authentication, permissions, validation rules, and database error. Check that the controller calls the intended model function and that the database user has write privileges.
+
+### Why does Markdown appear as plain text?
+
+Confirm that the editor or controller converts Markdown to HTML before rendering and that the selected template outputs the converted value. Keep HTML sanitization enabled for user-generated content. Also check that the correct template variable is being passed.
+
+### How do I report a bug?
+
+Include the SimpleCMS version or commit, operating system, Node.js and MySQL versions, steps to reproduce, expected behavior, actual behavior, relevant logs with secrets removed, and whether the issue affects development or production. Never include passwords, session secrets, database credentials, or private user data.
+
+## Quick Reference
+
+| Task | Where to start |
+| --- | --- |
+| Install the application | `package.json`, `/config`, and the project installation instructions |
+| Create or edit content | Admin content editor and `/controllers` |
+| Manage blog routes | `/routes` |
+| Query or save content | `/models` |
+| Change page markup | `/views` and Handlebars templates |
+| Change browser behavior | `/public` and jQuery scripts |
+| Manage uploads | Upload settings, upload controller, and `/uploads` |
+| Manage access | User settings and authentication/authorization middleware |
+| Customize appearance | Active theme settings, `/views`, and `/public` |
+| Configure SEO | Content metadata and site settings |
+| Connect analytics | Analytics settings and public page templates |
