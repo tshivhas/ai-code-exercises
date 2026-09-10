@@ -1,0 +1,467 @@
+# FastAPI Learning Roadmap
+
+This roadmap uses the official FastAPI documentation as a navigation guide. Use
+AI as a tutor and review partner: ask it to explain unfamiliar topics, generate
+small exercises, and critique your work, but verify API details against the
+linked documentation and run the code yourself.
+
+## How to Use This Roadmap
+
+- Spend roughly one week on each phase, adjusting the pace after the verification
+	checklist rather than following a calendar rigidly.
+- For every topic, read the relevant documentation section, build a small
+	example, explain the design in your own words, and test an expected failure.
+- Use this prompt when starting a topic:
+
+	> I am learning [FastAPI topic]. Explain the core idea using a small example,
+	> give me one exercise without the solution, and list two common mistakes. Use
+	> the official FastAPI documentation as the source of truth.
+
+- Use this prompt after writing code:
+
+	> Review this FastAPI code for correctness, security, maintainability, and
+	> alignment with the official documentation. Identify issues first, explain
+	> why they matter, and suggest focused tests. Do not rewrite it yet.
+
+ ## Phase 1: Python and FastAPI Foundations
+
+ **Prerequisites**
+
+ - Basic Python functions, imports, dictionaries, and type hints
+ - Basic HTTP concepts: methods, URLs, status codes, and JSON
+ - Python and FastAPI installed in a virtual environment
+
+ **Learning steps**
+
+ 1. Review Python type hints and `async`/`await`.
+ 2. Create a `FastAPI` application and run it with `fastapi dev` or `python -m uvicorn`.
+ 3. Create GET endpoints with path and query parameters.
+ 4. Explore automatic OpenAPI documentation at `/docs` and `/redoc`.
+ 5. Practice returning JSON responses and appropriate status codes.
+
+ **Verification**
+
+ - Build a small API with `/`, `/items/{item_id}`, and `/search` endpoints.
+ - Call each endpoint from the interactive documentation.
+ - Confirm invalid path and query values produce validation errors.
+ - Explain how a request reaches a path operation function.
+
+**AI practice:** Ask AI to quiz you on path versus query parameters, then ask
+it to turn one incorrect answer into a short coding exercise.
+
+ ## Phase 2: Data Models and Validation
+
+ **Prerequisites**
+
+ - Completed Phase 1
+ - Familiarity with Python classes or dataclasses
+
+ **Learning steps**
+
+ 1. Define request bodies with Pydantic models.
+ 2. Add field, string, numeric, and nested-model validation.
+ 3. Define response models and separate input models from output models.
+ 4. Handle errors with `HTTPException` and custom status codes.
+ 5. Add examples and metadata to improve generated API documentation.
+
+ **Verification**
+
+ - Add create, read, update, and delete-style endpoints for one resource.
+ - Test valid, missing, extra, and incorrectly typed fields.
+ - Verify response models do not expose fields that should remain private.
+ - Confirm the generated OpenAPI schema describes the models correctly.
+
+**AI practice:** Give AI a resource description and ask for several invalid
+JSON examples. Predict the validation response before running each request.
+
+ ## Phase 3: Application Structure and Cross-Cutting Features
+
+ **Prerequisites**
+
+ - Comfortable with request validation and response models
+ - Basic understanding of dependency injection and databases
+
+ **Learning steps**
+
+ 1. Use dependencies for shared logic, authentication, and database sessions.
+ 2. Split a larger application into routers and multiple files with `APIRouter`.
+ 3. Add middleware and configure CORS where needed.
+ 4. Connect a relational database and implement basic persistence.
+ 5. Add security using OAuth2, bearer tokens, and password hashing concepts.
+
+ **Verification**
+
+ - Refactor the API into separate router, model, and service modules.
+ - Replace in-memory data with a database-backed implementation.
+ - Write an authentication-protected endpoint.
+ - Test dependency overrides and unauthorized requests.
+
+**AI practice:** Ask AI to propose two module structures for the same API. Pick
+one, explain the trade-offs, and keep the design that is easiest to test.
+
+ ## Phase 4: Testing and Advanced FastAPI
+
+ **Prerequisites**
+
+ - A multi-file API with persistence
+ - Familiarity with pytest and HTTP client testing
+
+ **Learning steps**
+
+ 1. Test endpoints with FastAPI's `TestClient`.
+ 2. Learn async tests, lifespan events, and dependency overrides.
+ 3. Study background tasks, file uploads, streaming, and WebSockets as needed.
+ 4. Configure settings and environment variables for different environments.
+ 5. Review advanced responses, middleware, proxies, and generated clients.
+
+ **Verification**
+
+ - Cover success, validation, authentication, and database failure cases.
+ - Run the test suite independently of the development server.
+ - Add a test for startup and shutdown behavior.
+ - Identify which advanced features your project actually needs.
+
+**AI practice:** Ask AI to create a test matrix from your endpoint list. Review
+the matrix for missing authorization, boundary, and failure cases before
+implementing the tests.
+
+ ## Phase 5: Deployment and Production Operations
+
+ **Prerequisites**
+
+ - Tested application with environment-based configuration
+ - Basic Docker and hosting knowledge
+
+ **Learning steps**
+
+ 1. Understand the difference between development and production servers.
+ 2. Run the application manually with a production-oriented server command.
+ 3. Learn HTTPS, reverse proxies, workers, and deployment concepts.
+ 4. Containerize the API with Docker.
+ 5. Deploy to a cloud provider and configure logs, secrets, and health checks.
+
+ **Verification**
+
+ - Build and run the Docker image locally.
+ - Verify the API remains available after a container restart.
+ - Test production configuration without committing secrets.
+ - Exercise the deployed API and inspect its logs and generated docs.
+
+**AI practice:** Ask AI to review a deployment checklist for missing secrets,
+health checks, logging, HTTPS, and resource limits. Verify every suggestion
+against your hosting provider's documentation.
+
+ ## Capstone Project
+
+ Build a task-management API with:
+
+ - CRUD endpoints for tasks
+ - Pydantic request and response models
+ - Filtering, pagination, and validation
+ - Database persistence
+ - Authentication for private tasks
+ - Routers, dependencies, and environment-based settings
+ - Automated tests
+ - Docker deployment documentation
+
+**Capstone review prompts**
+
+1. Ask AI to act as a maintainer and identify the three highest-risk defects.
+2. Ask it to act as an API consumer and write an acceptance-test checklist.
+3. Ask it to explain one architectural decision, then compare that explanation
+	 with the relevant FastAPI documentation.
+
+ Use the official Tutorial first. Consult the Advanced User Guide when a feature
+ is required by the project, rather than trying to study every advanced topic in
+ sequence.
+
+ ## Recommended Documentation Order
+
+ 1. [Python Types](https://fastapi.tiangolo.com/python-types/)
+ 2. [Concurrency and async/await](https://fastapi.tiangolo.com/async/)
+ 3. [Tutorial - User Guide](https://fastapi.tiangolo.com/tutorial/)
+ 4. [Testing](https://fastapi.tiangolo.com/tutorial/testing/)
+ 5. [Advanced User Guide](https://fastapi.tiangolo.com/advanced/)
+ 6. [Deployment](https://fastapi.tiangolo.com/deployment/)
+
+## Reference Guide: Concepts to Code
+
+This section connects three recurring FastAPI documentation topics with small,
+practical implementations. Each example can be copied into a single
+`main.py` file after installing `fastapi` and `uvicorn`.
+
+### 1. Dependency Injection
+
+FastAPI dependency injection lets a path operation declare what it needs. FastAPI
+calls the dependency, resolves its own dependencies, and passes the result into
+the path operation. This keeps authentication, shared parameters, and resource
+lifecycle code out of the route body.
+
+#### Scenario A: Shared query parameters
+
+Use a dependency when several endpoints need the same pagination or filtering
+rules.
+
+```python
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, Query
+
+app = FastAPI()
+
+
+class Pagination:
+	def __init__(
+		self,
+		skip: int = Query(0, ge=0),
+		limit: int = Query(20, ge=1, le=100),
+	) -> None:
+		self.skip = skip
+		self.limit = limit
+
+
+PaginationParams = Annotated[Pagination, Depends()]
+
+
+@app.get("/items")
+async def list_items(pagination: PaginationParams) -> dict:
+	return {
+		"skip": pagination.skip,
+		"limit": pagination.limit,
+		"items": [],
+	}
+```
+
+Use this pattern when the dependency is request-specific and reusable. FastAPI
+validates the query parameters before `list_items` runs.
+
+#### Scenario B: Authentication with nested dependencies
+
+Dependencies can depend on other dependencies. Here, the route receives a user
+only after the API key dependency succeeds.
+
+```python
+from fastapi import Depends, FastAPI, Header, HTTPException
+
+app = FastAPI()
+
+
+async def verify_api_key(x_api_key: str = Header(...)) -> str:
+	if x_api_key != "valid_key_123":
+		raise HTTPException(status_code=403, detail="Invalid API key")
+	return x_api_key
+
+
+async def get_current_user(
+	api_key: str = Depends(verify_api_key),
+) -> dict[str, object]:
+	# A real application would use api_key to query a user store.
+	return {"user_id": 123, "name": "Demo User"}
+
+
+@app.get("/profile")
+async def read_profile(
+	user: dict[str, object] = Depends(get_current_user),
+) -> dict[str, object]:
+	return {"message": f"Hello, {user['name']}!", "user": user}
+```
+
+Use nested dependencies for authentication and authorization checks that should
+be shared by multiple routes. Do not hard-code real API keys in source code;
+use a secret manager or environment-based settings in production.
+
+#### Scenario C: Yielding a resource
+
+Use a dependency with `yield` when a resource needs setup and cleanup, such as a
+database session.
+
+```python
+from collections.abc import Generator
+
+from fastapi import Depends, FastAPI
+
+app = FastAPI()
+
+
+def get_database() -> Generator[dict[str, str], None, None]:
+	database = {"status": "connected"}
+	try:
+		yield database
+	finally:
+		database["status"] = "closed"
+
+
+@app.get("/health/database")
+async def database_health(
+	database: dict[str, str] = Depends(get_database),
+) -> dict[str, str]:
+	return database
+```
+
+In a real application, replace the dictionary with the database session and
+close or release it in the `finally` block. FastAPI runs the cleanup after the
+request finishes.
+
+Read more in the [FastAPI dependency documentation](https://fastapi.tiangolo.com/tutorial/dependencies/).
+
+### 2. Path Operation Decorators
+
+A path operation decorator is the `@app.get(...)`, `@app.post(...)`, or similar
+line above a function. It connects an HTTP method and URL path to that function.
+The function is the path operation function; the decorator also configures
+metadata such as the response model, status code, tags, and summary.
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.get("/items/{item_id}", tags=["items"])
+async def read_item(item_id: int) -> dict[str, int]:
+	return {"item_id": item_id}
+```
+
+The decorator determines which requests reach the function. FastAPI also uses
+it to generate the OpenAPI schema and interactive documentation.
+
+#### Choosing a decorator
+
+| Decorator | Typical use | Example |
+| --- | --- | --- |
+| `@app.get` | Read a resource without changing it | `@app.get("/items")` |
+| `@app.post` | Create a resource or trigger an action | `@app.post("/items")` |
+| `@app.put` | Replace an existing resource completely | `@app.put("/items/{item_id}")` |
+| `@app.patch` | Update selected fields | `@app.patch("/items/{item_id}")` |
+| `@app.delete` | Remove a resource | `@app.delete("/items/{item_id}")` |
+| `@app.options` | Describe supported communication options | `@app.options("/items")` |
+| `@app.head` | Return headers without a response body | `@app.head("/items")` |
+| `@app.api_route` | Register several methods or an uncommon method | `@app.api_route("/items", methods=["GET", "POST"])` |
+
+Here is a compact CRUD example showing the most common decorators together:
+
+```python
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+
+app = FastAPI()
+
+
+class Item(BaseModel):
+	name: str
+	price: float
+
+
+items: dict[int, Item] = {}
+
+
+@app.get("/items/{item_id}", response_model=Item)
+async def read_item(item_id: int) -> Item:
+	if item_id not in items:
+		raise HTTPException(status_code=404, detail="Item not found")
+	return items[item_id]
+
+
+@app.post("/items", response_model=Item, status_code=201)
+async def create_item(item: Item) -> Item:
+	item_id = len(items) + 1
+	items[item_id] = item
+	return item
+
+
+@app.put("/items/{item_id}", response_model=Item)
+async def replace_item(item_id: int, item: Item) -> Item:
+	items[item_id] = item
+	return item
+
+
+@app.delete("/items/{item_id}", status_code=204)
+async def delete_item(item_id: int) -> None:
+	items.pop(item_id, None)
+```
+
+Choose the HTTP method based on the operation's meaning, then use decorator
+options to describe its contract. For larger applications, use the same
+decorators on an `APIRouter` and include that router in the main application.
+See the [FastAPI path operation documentation](https://fastapi.tiangolo.com/tutorial/first-steps/#path-operation-decorators).
+
+### 3. Background Tasks
+
+FastAPI's `BackgroundTasks` collects callables to run after the response has
+been sent. Add a task with `background_tasks.add_task(function, *args, **kwargs)`
+inside the path operation. The client receives the response without waiting for
+the task to finish.
+
+#### Sending a welcome email after registration
+
+```python
+from fastapi import BackgroundTasks, FastAPI
+from pydantic import BaseModel, EmailStr
+
+app = FastAPI()
+
+
+class Registration(BaseModel):
+	email: EmailStr
+	name: str
+
+
+def send_welcome_email(email: str, name: str) -> None:
+	# Replace this simulation with an email provider's synchronous client.
+	print(f"Sending a welcome email to {name} at {email}")
+
+
+@app.post("/register", status_code=202)
+async def register(
+	registration: Registration,
+	background_tasks: BackgroundTasks,
+) -> dict[str, str]:
+	# Save the user before scheduling the email in a real application.
+	background_tasks.add_task(
+		send_welcome_email,
+		registration.email,
+		registration.name,
+	)
+	return {"message": "Registration accepted; welcome email queued"}
+```
+
+Use background tasks for small, non-critical work such as sending a notification
+or writing an audit entry. The task runs in the same application process, so it
+is not a durable job queue: a process crash can lose the task, and long-running
+or CPU-heavy work can affect application capacity. Use a queue system such as
+Celery, RQ, or a hosted job service when delivery guarantees, retries, or heavy
+processing are required.
+
+Read more in the [FastAPI background tasks documentation](https://fastapi.tiangolo.com/tutorial/background-tasks/).
+
+## Practice Checklist
+
+- Add the pagination dependency to two endpoints and verify both accept the same
+  query parameters.
+- Send an invalid API key and confirm the nested dependency returns `403`.
+- Add a request body and response model to each CRUD operation.
+- Inspect `/docs` and `/openapi.json` to see how decorators describe the API.
+- Register a user, confirm the response arrives, and observe the email task in
+  the server log.
+- Ask AI to identify one case where an in-process background task is unsafe and
+  explain which queue-based design would be more appropriate.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
